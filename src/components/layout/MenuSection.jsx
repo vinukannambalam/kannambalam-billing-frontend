@@ -1,102 +1,110 @@
+import { useState } from "react";
+
 import {
-
-Drawer,
-
-Toolbar,
-
-List,
-
-ListItemButton,
-
-ListItemText
-
+    Collapse,
+    List,
+    ListItemButton,
+    ListItemIcon,
+    ListItemText
 } from "@mui/material";
+
+import ExpandLess from "@mui/icons-material/ExpandLess";
+import ExpandMore from "@mui/icons-material/ExpandMore";
 
 import { NavLink } from "react-router-dom";
 
-const drawerWidth = 250;
+export default function MenuSection({ item }) {
 
-export default function Sidebar() {
+    const [open, setOpen] = useState(true);
+
+    const Icon = item.icon;
+
+    if (!item.children) {
+
+        return (
+
+            <ListItemButton
+                component={NavLink}
+                to={item.path}
+            >
+
+                <ListItemIcon>
+
+                    <Icon />
+
+                </ListItemIcon>
+
+                <ListItemText primary={item.title} />
+
+            </ListItemButton>
+
+        );
+
+    }
 
     return (
 
-        <Drawer
+        <>
 
-            variant="permanent"
+            <ListItemButton
+                onClick={() => setOpen(!open)}
+            >
 
-            sx={{
+                <ListItemIcon>
 
-                width: drawerWidth,
+                    <Icon />
 
-                flexShrink: 0,
+                </ListItemIcon>
 
-                "& .MuiDrawer-paper": {
+                <ListItemText
+                    primary={item.title}
+                />
 
-                    width: drawerWidth,
+                {open ? <ExpandLess /> : <ExpandMore />}
 
-                    boxSizing: "border-box"
+            </ListItemButton>
 
-                }
+            <Collapse
+                in={open}
+            >
 
-            }}
-
-        >
-
-            <Toolbar />
-
-            <List>
-
-                <ListItemButton
-
-                    component={NavLink}
-
-                    to="/"
-
+                <List
+                    disablePadding
                 >
 
-                    <ListItemText
+                    {
 
-                        primary="Dashboard"
+                        item.children.map(child => (
 
-                    />
+                            <ListItemButton
 
-                </ListItemButton>
+                                key={child.path}
 
-                <ListItemButton
+                                component={NavLink}
 
-                    component={NavLink}
+                                to={child.path}
 
-                    to="/billing/new"
+                                sx={{
+                                    pl:7
+                                }}
 
-                >
+                            >
 
-                    <ListItemText
+                                <ListItemText
+                                    primary={child.title}
+                                />
 
-                        primary="New Receipt"
+                            </ListItemButton>
 
-                    />
+                        ))
 
-                </ListItemButton>
+                    }
 
-                <ListItemButton
+                </List>
 
-                    component={NavLink}
+            </Collapse>
 
-                    to="/receipts"
-
-                >
-
-                    <ListItemText
-
-                        primary="Receipts"
-
-                    />
-
-                </ListItemButton>
-
-            </List>
-
-        </Drawer>
+        </>
 
     );
 
