@@ -63,7 +63,11 @@ const colors = {
 // SIDEBAR
 // ==================================================
 
-export default function AppSidebar() {
+export default function AppSidebar({
+    mobileOpen = false,
+    onMobileClose = () => {},
+    isMobile = false
+}) {
 
 
     // ==================================================
@@ -222,29 +226,23 @@ export default function AppSidebar() {
     return (
 
         <Drawer
-            variant="permanent"
-
+            variant={isMobile ? "temporary" : "permanent"}
+            open={isMobile ? mobileOpen : true}
+            onClose={onMobileClose}
+            ModalProps={{
+                keepMounted: true
+            }}
             sx={{
                 width: drawerWidth,
-
                 flexShrink: 0,
-
+                display: { xs: "block", md: "block" },
                 "& .MuiDrawer-paper": {
-
                     width: drawerWidth,
-
                     boxSizing: "border-box",
-
-                    borderRight:
-                        "1px solid #e0e0e0",
-
-                    backgroundColor:
-                        "#FFFFFF",
-
+                    borderRight: "1px solid #e0e0e0",
+                    backgroundColor: "#FFFFFF",
                     overflowX: "hidden"
-
                 }
-
             }}
         >
 
@@ -272,6 +270,7 @@ export default function AppSidebar() {
 
                     <ListItemButton
                         component={NavLink}
+                        onClick={onMobileClose}
                         to="/"
                         end
                         sx={menuItemStyle}
@@ -354,8 +353,10 @@ export default function AppSidebar() {
 
                             <ListItemButton
                                 component={NavLink}
+                                onClick={onMobileClose}
                                 to="/billing/new"
                                 sx={{
+
                                     ...menuItemStyle,
                                     ml: 2,
                                     mr: 1
@@ -378,8 +379,10 @@ export default function AppSidebar() {
 
                             <ListItemButton
                                 component={NavLink}
+                                onClick={onMobileClose}
                                 to="/receipts"
                                 sx={{
+
                                     ...menuItemStyle,
                                     ml: 2,
                                     mr: 1
@@ -469,8 +472,10 @@ export default function AppSidebar() {
 
                                     <ListItemButton
                                         component={NavLink}
+                                        onClick={onMobileClose}
                                         to="/masters/devotees"
                                         sx={{
+
                                             ...menuItemStyle,
                                             ml: 2,
                                             mr: 1
@@ -495,8 +500,10 @@ export default function AppSidebar() {
 
                                     <ListItemButton
                                         component={NavLink}
+                                        onClick={onMobileClose}
                                         to="/masters/categories"
                                         sx={{
+
                                             ...menuItemStyle,
                                             ml: 2,
                                             mr: 1
@@ -521,8 +528,10 @@ export default function AppSidebar() {
 
                                     <ListItemButton
                                         component={NavLink}
+                                        onClick={onMobileClose}
                                         to="/masters/offerings"
                                         sx={{
+
                                             ...menuItemStyle,
                                             ml: 2,
                                             mr: 1
@@ -547,8 +556,10 @@ export default function AppSidebar() {
 
                                     <ListItemButton
                                         component={NavLink}
+                                        onClick={onMobileClose}
                                         to="/masters/payment-modes"
                                         sx={{
+
                                             ...menuItemStyle,
                                             ml: 2,
                                             mr: 1
@@ -636,8 +647,10 @@ export default function AppSidebar() {
 
                             <ListItemButton
                                 component={NavLink}
+                                onClick={onMobileClose}
                                 to="/reports"
                                 sx={{
+
                                     ...menuItemStyle,
                                     ml: 2,
                                     mr: 1
@@ -727,8 +740,10 @@ export default function AppSidebar() {
 
                                     <ListItemButton
                                         component={NavLink}
+                                        onClick={onMobileClose}
                                         to="/users"
                                         sx={{
+
                                             ...menuItemStyle,
                                             ml: 2,
                                             mr: 1
@@ -753,8 +768,10 @@ export default function AppSidebar() {
 
                                     <ListItemButton
                                         component={NavLink}
+                                        onClick={onMobileClose}
                                         to="/settings"
                                         sx={{
+
                                             ...menuItemStyle,
                                             ml: 2,
                                             mr: 1

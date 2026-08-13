@@ -361,8 +361,10 @@ export default function Dashboard() {
                 sx={{
                     display: "flex",
                     justifyContent: "space-between",
-                    alignItems: "center",
-                    mb: 3
+                    alignItems: { xs: "stretch", sm: "center" },
+                    flexDirection: { xs: "column", sm: "row" },
+                    mb: { xs: 2, sm: 3 },
+                    gap: { xs: 1.5, sm: 2 }
                 }}
             >
 
@@ -371,7 +373,12 @@ export default function Dashboard() {
                     <Typography
                         variant="h4"
                         sx={{
-                            fontWeight: 600
+                            fontWeight: 600,
+                            fontSize: {
+                                xs: "1.5rem",
+                                sm: "1.75rem",
+                                md: "2.125rem"
+                            }
                         }}
                     >
                         Dashboard
@@ -400,6 +407,11 @@ export default function Dashboard() {
                             "/billing/new"
                         )
                     }
+                    fullWidth
+                    sx={{
+                        minHeight: 48,
+                        width: { xs: "100%", sm: "auto" }
+                    }}
                 >
                     New Receipt
                 </Button>
@@ -439,7 +451,7 @@ export default function Dashboard() {
 
             <Grid
                 container
-                spacing={3}
+                spacing={{ xs: 1.5, sm: 2, md: 3 }}
             >
 
                 {cards.map(
@@ -457,9 +469,10 @@ export default function Dashboard() {
 
                             <Paper
                                 sx={{
-                                    p: 3,
+                                    p: { xs: 2, sm: 2.5, md: 3 },
                                     height:
                                         "100%",
+                                    minHeight: { xs: 112, sm: 125 },
 
                                     cursor:
                                         "default",
@@ -557,9 +570,9 @@ export default function Dashboard() {
 
             <Grid
                 container
-                spacing={3}
+                spacing={{ xs: 1.5, sm: 2, md: 3 }}
                 sx={{
-                    mt: 1
+                    mt: { xs: 1, md: 1 }
                 }}
             >
 
@@ -575,8 +588,8 @@ export default function Dashboard() {
 
                     <Paper
                         sx={{
-                            p: 3,
-                            minHeight: 340
+                            p: { xs: 1.75, sm: 2.5, md: 3 },
+                            minHeight: { xs: 330, sm: 340 }
                         }}
                     >
 
@@ -588,10 +601,10 @@ export default function Dashboard() {
                                 justifyContent:
                                     "space-between",
 
-                                alignItems:
-                                    "center",
+                                alignItems: { xs: "flex-start", sm: "center" },
+                                gap: 1,
 
-                                mb: 3
+                                mb: { xs: 2, sm: 3 }
                             }}
                         >
 
@@ -634,7 +647,7 @@ export default function Dashboard() {
 
                         <Box
                             sx={{
-                                height: 230,
+                                height: { xs: 210, sm: 230 },
                                 display:
                                     "flex",
 
@@ -649,7 +662,8 @@ export default function Dashboard() {
 
                             <Box
                                 sx={{
-                                    width: 65,
+                                    width: { xs: 48, sm: 65 },
+                                    flexShrink: 0,
                                     display:
                                         "flex",
 
@@ -704,7 +718,7 @@ export default function Dashboard() {
                                     alignItems:
                                         "stretch",
 
-                                    gap: 2,
+                                    gap: { xs: 0.5, sm: 2 },
 
                                     borderBottom:
                                         "1px solid #ddd",
@@ -747,7 +761,7 @@ export default function Dashboard() {
                                                     flex: 1,
 
                                                     minWidth:
-                                                        60,
+                                                        { xs: 32, sm: 60 },
 
                                                     display:
                                                         "flex",
@@ -870,11 +884,12 @@ export default function Dashboard() {
                                     "flex",
 
                                 ml:
-                                    "65px",
+                                    { xs: "48px", sm: "65px" },
 
-                                gap: 2,
+                                gap: { xs: 0.5, sm: 2 },
 
-                                mt: 1
+                                mt: 1,
+                                overflow: "hidden"
                             }}
                         >
 
@@ -933,8 +948,8 @@ export default function Dashboard() {
 
                     <Paper
                         sx={{
-                            p: 3,
-                            minHeight: 340
+                            p: { xs: 1.75, sm: 2.5, md: 3 },
+                            minHeight: { xs: "auto", sm: 340 }
                         }}
                     >
 
@@ -954,8 +969,8 @@ export default function Dashboard() {
                             fullWidth
                             variant="contained"
                             sx={{
-                                mb: 2,
-                                height: 42
+                                mb: 1.5,
+                                height: 48
                             }}
                             onClick={() =>
                                 navigate(
@@ -971,8 +986,8 @@ export default function Dashboard() {
                             fullWidth
                             variant="outlined"
                             sx={{
-                                mb: 2,
-                                height: 42
+                                mb: 1.5,
+                                height: 48
                             }}
                             onClick={() =>
                                 navigate(
@@ -988,7 +1003,7 @@ export default function Dashboard() {
                             fullWidth
                             variant="outlined"
                             sx={{
-                                height: 42
+                                height: 48
                             }}
                             onClick={() =>
                                 navigate(

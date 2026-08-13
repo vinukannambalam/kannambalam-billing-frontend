@@ -19,9 +19,12 @@ import {
     Alert,
     IconButton,
     InputAdornment,
+    useMediaQuery,
+    useTheme,
     CircularProgress
 } from "@mui/material";
 
+import MenuIcon from "@mui/icons-material/Menu";
 import LogoutIcon from "@mui/icons-material/Logout";
 import LockIcon from "@mui/icons-material/Lock";
 import VisibilityIcon from "@mui/icons-material/Visibility";
@@ -35,9 +38,12 @@ const drawerWidth = 260;
 const API_BASE = "https://billing-api.kannambalam.com";
 
 
-export default function AppHeader() {
+export default function AppHeader({ onMenuClick, isMobile: isMobileProp }) {
 
     const navigate = useNavigate();
+    const theme = useTheme();
+    const isMobileQuery = useMediaQuery(theme.breakpoints.down("md"));
+    const isMobile = isMobileProp ?? isMobileQuery;
 
 
     // ==================================================
@@ -513,33 +519,43 @@ export default function AppHeader() {
             ================================================== */}
 
             <AppBar
-
                 position="fixed"
-
                 sx={{
-
-                    width:
-                        `calc(100% - ${drawerWidth}px)`,
-
-                    ml:
-                        `${drawerWidth}px`,
-
-                    backgroundColor:
-                        "#a00000",
-
-                    boxShadow:
-                        "0 2px 6px rgba(0,0,0,0.25)"
-
+                    width: {
+                        xs: "100%",
+                        md: `calc(100% - ${drawerWidth}px)`
+                    },
+                    ml: {
+                        xs: 0,
+                        md: `${drawerWidth}px`
+                    },
+                    backgroundColor: "#a00000",
+                    boxShadow: "0 2px 6px rgba(0,0,0,0.25)",
+                    zIndex: (theme) => theme.zIndex.drawer + 1
                 }}
-
             >
 
                 <Toolbar
                     sx={{
-                        minHeight:
-                            "64px !important"
+                        minHeight: {
+                            xs: "56px !important",
+                            md: "64px !important"
+                        },
+                        px: { xs: 1, sm: 2, md: 2 }
                     }}
                 >
+
+                    {isMobile && (
+                        <IconButton
+                            color="inherit"
+                            edge="start"
+                            onClick={onMenuClick}
+                            aria-label="Open navigation menu"
+                            sx={{ mr: 0.5 }}
+                        >
+                            <MenuIcon />
+                        </IconButton>
+                    )}
 
                     {/* ======================================
                         TEMPLE LOGO + MALAYALAM TITLE
@@ -578,11 +594,17 @@ export default function AppHeader() {
 
                             sx={{
 
-                                width:
-                                    55,
+                                width: {
+                                    xs: 42,
+                                    sm: 50,
+                                    md: 55
+                                },
 
-                                height:
-                                    42,
+                                height: {
+                                    xs: 34,
+                                    sm: 38,
+                                    md: 42
+                                },
 
                                 objectFit:
                                     "cover",
@@ -606,6 +628,12 @@ export default function AppHeader() {
 
                                 fontWeight:
                                     700,
+
+                                fontSize: {
+                                    xs: "0.95rem",
+                                    sm: "1.05rem",
+                                    md: "1.25rem"
+                                },
 
                                 whiteSpace:
                                     "nowrap",
@@ -651,14 +679,9 @@ export default function AppHeader() {
                             cursor:
                                 "pointer",
 
-                            mr:
-                                1,
-
-                            px:
-                                1,
-
-                            py:
-                                0.5,
+                            mr: { xs: 0, sm: 1 },
+                            px: { xs: 0.5, sm: 1 },
+                            py: 0.5,
 
                             borderRadius:
                                 1,
@@ -676,8 +699,8 @@ export default function AppHeader() {
 
                         <Box
                             sx={{
-                                textAlign:
-                                    "right"
+                                textAlign: "right",
+                                display: { xs: "none", sm: "block" }
                             }}
                         >
 

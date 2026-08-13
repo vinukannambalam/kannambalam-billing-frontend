@@ -436,8 +436,13 @@ export default function NewReceipt() {
             <Typography
                 variant="h4"
                 sx={{
-                    mb: 3,
-                    fontWeight: 600
+                    mb: { xs: 1.5, sm: 2.5, md: 3 },
+                    fontWeight: 600,
+                    fontSize: {
+                        xs: "1.5rem",
+                        sm: "1.75rem",
+                        md: "2.125rem"
+                    }
                 }}
             >
                 New Receipt
@@ -446,8 +451,8 @@ export default function NewReceipt() {
 
             <Paper
                 sx={{
-                    p: 3,
-                    borderRadius: 2
+                    p: { xs: 1.5, sm: 2, md: 3 },
+                    borderRadius: { xs: 1.5, md: 2 }
                 }}
             >
 
@@ -456,7 +461,8 @@ export default function NewReceipt() {
                 <Typography
                     variant="h6"
                     sx={{
-                        mb: 2
+                        mb: { xs: 1.5, md: 2 },
+                        fontSize: { xs: "1.05rem", sm: "1.15rem", md: "1.25rem" }
                     }}
                 >
                     Receipt Details 
@@ -566,7 +572,7 @@ export default function NewReceipt() {
 
                 <Divider
                     sx={{
-                        my: 3
+                        my: { xs: 2, md: 3 }
                     }}
                 />
 
@@ -576,7 +582,8 @@ export default function NewReceipt() {
                 <Typography
                     variant="h6"
                     sx={{
-                        mb: 2
+                        mb: { xs: 1.5, md: 2 },
+                        fontSize: { xs: "1.05rem", sm: "1.15rem", md: "1.25rem" }
                     }}
                 >
                     Devotee Details
@@ -625,7 +632,8 @@ export default function NewReceipt() {
                                 <PersonSearchIcon />
                             }
                             sx={{
-                                height: 56
+                                minHeight: 52,
+                                height: { xs: 52, md: 56 }
                             }}
                             onClick={() =>
                                 setDialogOpen(true)
@@ -684,7 +692,7 @@ export default function NewReceipt() {
 
                 <Divider
                     sx={{
-                        my: 3
+                        my: { xs: 2, md: 3 }
                     }}
                 />
 
@@ -701,7 +709,7 @@ export default function NewReceipt() {
 
                 <Divider
                     sx={{
-                        my: 3
+                        my: { xs: 2, md: 3 }
                     }}
                 />
 
@@ -720,7 +728,7 @@ export default function NewReceipt() {
                         )
                     }
                     sx={{
-                        mb: 3
+                        mb: { xs: 2, md: 3 }
                     }}
                 />
 
@@ -730,18 +738,23 @@ export default function NewReceipt() {
                 <Box
                     sx={{
                         display: "flex",
-                        justifyContent:
-                            "space-between",
-                        alignItems: "center",
+                        flexDirection: { xs: "column", sm: "row" },
+                        justifyContent: "space-between",
+                        alignItems: { xs: "stretch", sm: "center" },
                         flexWrap: "wrap",
-                        gap: 2
+                        gap: { xs: 1.5, sm: 2 }
                     }}
                 >
 
                     <Typography
                         variant="h5"
                         sx={{
-                            fontWeight: 600
+                            fontWeight: 600,
+                            fontSize: {
+                                xs: "1.45rem",
+                                sm: "1.65rem",
+                                md: "2rem"
+                            }
                         }}
                     >
                         Total: ₹
@@ -752,7 +765,9 @@ export default function NewReceipt() {
                     <Box
                         sx={{
                             display: "flex",
-                            gap: 2
+                            flexDirection: { xs: "column", sm: "row" },
+                            gap: { xs: 1, sm: 2 },
+                            width: { xs: "100%", sm: "auto" }
                         }}
                     >
 
@@ -767,6 +782,11 @@ export default function NewReceipt() {
                             disabled={
                                 saving
                             }
+                            fullWidth={true}
+                            sx={{
+                                minHeight: 48,
+                                width: { xs: "100%", sm: "auto" }
+                            }}
                         >
 
                             {saving
@@ -787,6 +807,11 @@ export default function NewReceipt() {
                             disabled={
                                 saving
                             }
+                            fullWidth={true}
+                            sx={{
+                                minHeight: 48,
+                                width: { xs: "100%", sm: "auto" }
+                            }}
                         >
                             Print
                         </Button>

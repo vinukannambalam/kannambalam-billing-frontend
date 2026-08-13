@@ -477,19 +477,13 @@ export default function ReceiptGrid({
                     sx={{
                         display: "grid",
 
-                        gridTemplateColumns:
-                            "1.4fr 1.4fr 1.2fr 100px 100px",
-
-                        gap: 2,
-
-                        alignItems: "center",
-
-                        "@media (max-width: 1000px)": {
-
-                            gridTemplateColumns:
-                                "1fr 1fr"
-
-                        }
+                        gridTemplateColumns: {
+                            xs: "1fr",
+                            sm: "1fr 1fr",
+                            md: "1.4fr 1.4fr 1.2fr 100px 100px"
+                        },
+                        gap: { xs: 1.5, sm: 2 },
+                        alignItems: "stretch"
 
                     }}
                 >
@@ -626,9 +620,8 @@ export default function ReceiptGrid({
                 <Box
                     sx={{
                         display: "flex",
-                        justifyContent:
-                            "flex-end",
-                        mt: 2
+                        justifyContent: { xs: "stretch", sm: "flex-end" },
+                        mt: { xs: 1.5, md: 2 }
                     }}
                 >
 
@@ -641,6 +634,11 @@ export default function ReceiptGrid({
                         disabled={
                             loadingOfferings
                         }
+                        fullWidth
+                        sx={{
+                            minHeight: 48,
+                            width: { xs: "100%", sm: "auto" }
+                        }}
                     >
                         Add Offering
                     </Button>
@@ -674,205 +672,220 @@ export default function ReceiptGrid({
                 {/* OFFERING TABLE */}
 
                 {items.length > 0 && (
-
-                    <Table>
-
-                        <TableHead>
-
-                            <TableRow>
-
-                                <TableCell>
-                                    Offering
-                                </TableCell>
-
-                                <TableCell>
-                                    For Name
-                                </TableCell>
-
-                                <TableCell>
-                                    Nakshathra
-                                </TableCell>
-
-                                <TableCell align="right">
-                                    Qty
-                                </TableCell>
-
-                                <TableCell align="right">
-                                    Rate
-                                </TableCell>
-
-                                <TableCell align="right">
-                                    Amount
-                                </TableCell>
-
-                                <TableCell align="center">
-                                    Action
-                                </TableCell>
-
-                            </TableRow>
-
-                        </TableHead>
-
-
-                        <TableBody>
-
-                            {items.map(
-                                (item) => (
-
-                                    <TableRow
-                                        key={item.id}
-                                    >
-
-                                        <TableCell>
-
-                                            <Box>
-
-                                                <Typography>
-                                                    {
-                                                        item.offering_name
-                                                    }
-                                                </Typography>
-
-
-                                                {item.offering_name_ml && (
-
-                                                    <Typography
-                                                        variant="caption"
-                                                        color="text.secondary"
-                                                    >
-                                                        {
-                                                            item.offering_name_ml
-                                                        }
-                                                    </Typography>
-
-                                                )}
-
-                                            </Box>
-
-                                        </TableCell>
-
-
-                                        <TableCell>
-                                            {
-                                                item.beneficiary_name
-                                            }
-                                        </TableCell>
-
-
-                                        <TableCell>
-
-                                            {item.nakshathra_en
-                                                ? (
-                                                    <Box>
-
-                                                        <Typography>
-                                                            {
-                                                                item.nakshathra_en
-                                                            }
-                                                        </Typography>
-
-
-                                                        {item.nakshathra_ml && (
-
-                                                            <Typography
-                                                                variant="caption"
-                                                                color="text.secondary"
-                                                            >
-                                                                {
-                                                                    item.nakshathra_ml
-                                                                }
-                                                            </Typography>
-
-                                                        )}
-
-                                                    </Box>
-                                                )
-                                                : (
-                                                    <Typography
-                                                        color="text.secondary"
-                                                    >
-                                                        —
-                                                    </Typography>
-                                                )}
-
-                                        </TableCell>
-
-
-                                        <TableCell
-                                            align="right"
-                                        >
-                                            {
-                                                item.quantity
-                                            }
-                                        </TableCell>
-
-
-                                        <TableCell
-                                            align="right"
-                                        >
-                                            ₹
-                                            {Number(
-                                                item.rate
-                                            ).toFixed(2)}
-                                        </TableCell>
-
-
-                                        <TableCell
-                                            align="right"
-                                        >
-                                            ₹
-                                            {Number(
-                                                item.amount
-                                            ).toFixed(2)}
-                                        </TableCell>
-
-
-                                        <TableCell
-                                            align="center"
-                                        >
-
-                                            <IconButton
-                                                color="error"
-                                                onClick={() =>
-                                                    removeItem(
-                                                        item.id
-                                                    )
-                                                }
-                                            >
-
-                                                <DeleteIcon />
-
-                                            </IconButton>
-
-                                        </TableCell>
-
+                    <>
+                        {/* Desktop/tablet table */}
+                        <Box sx={{ display: { xs: "none", sm: "block" }, overflowX: "auto" }}>
+                            <Table sx={{ minWidth: 720 }}>
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell>Offering</TableCell>
+                                        <TableCell>For Name</TableCell>
+                                        <TableCell>Nakshathra</TableCell>
+                                        <TableCell align="right">Qty</TableCell>
+                                        <TableCell align="right">Rate</TableCell>
+                                        <TableCell align="right">Amount</TableCell>
+                                        <TableCell align="center">Action</TableCell>
                                     </TableRow>
+                                </TableHead>
 
-                                )
-                            )}
+                                <TableBody>
+                                    {items.map((item) => (
+                                        <TableRow key={item.id}>
+                                            <TableCell>
+                                                <Box>
+                                                    <Typography>{item.offering_name}</Typography>
+                                                    {item.offering_name_ml && (
+                                                        <Typography variant="caption" color="text.secondary">
+                                                            {item.offering_name_ml}
+                                                        </Typography>
+                                                    )}
+                                                </Box>
+                                            </TableCell>
 
-                        </TableBody>
+                                            <TableCell>{item.beneficiary_name}</TableCell>
 
-                    </Table>
+                                            <TableCell>
+                                                {item.nakshathra_en ? (
+                                                    <Box>
+                                                        <Typography>{item.nakshathra_en}</Typography>
+                                                        {item.nakshathra_ml && (
+                                                            <Typography variant="caption" color="text.secondary">
+                                                                {item.nakshathra_ml}
+                                                            </Typography>
+                                                        )}
+                                                    </Box>
+                                                ) : (
+                                                    <Typography color="text.secondary">—</Typography>
+                                                )}
+                                            </TableCell>
 
+                                            <TableCell align="right">{item.quantity}</TableCell>
+
+                                            <TableCell align="right">
+                                                ₹{Number(item.rate).toFixed(2)}
+                                            </TableCell>
+
+                                            <TableCell align="right">
+                                                ₹{Number(item.amount).toFixed(2)}
+                                            </TableCell>
+
+                                            <TableCell align="center">
+                                                <IconButton
+                                                    color="error"
+                                                    onClick={() => removeItem(item.id)}
+                                                    aria-label={`Remove ${item.offering_name}`}
+                                                >
+                                                    <DeleteIcon />
+                                                </IconButton>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </Box>
+
+                        {/* Mobile cards */}
+                        <Box sx={{ display: { xs: "flex", sm: "none" }, flexDirection: "column", gap: 1.5 }}>
+                            {items.map((item) => (
+                                <Paper
+                                    key={item.id}
+                                    variant="outlined"
+                                    sx={{
+                                        p: 1.5,
+                                        borderRadius: 1.5
+                                    }}
+                                >
+                                    <Box
+                                        sx={{
+                                            display: "flex",
+                                            justifyContent: "space-between",
+                                            alignItems: "flex-start",
+                                            gap: 1
+                                        }}
+                                    >
+                                        <Box sx={{ minWidth: 0, flex: 1 }}>
+                                            <Typography
+                                                sx={{
+                                                    fontWeight: 600,
+                                                    lineHeight: 1.3,
+                                                    overflowWrap: "anywhere"
+                                                }}
+                                            >
+                                                {item.offering_name}
+                                            </Typography>
+
+                                            {item.offering_name_ml && (
+                                                <Typography variant="caption" color="text.secondary">
+                                                    {item.offering_name_ml}
+                                                </Typography>
+                                            )}
+                                        </Box>
+
+                                        <IconButton
+                                            color="error"
+                                            onClick={() => removeItem(item.id)}
+                                            aria-label={`Remove ${item.offering_name}`}
+                                            sx={{
+                                                minWidth: 44,
+                                                minHeight: 44,
+                                                flexShrink: 0
+                                            }}
+                                        >
+                                            <DeleteIcon />
+                                        </IconButton>
+                                    </Box>
+
+                                    <Divider sx={{ my: 1 }} />
+
+                                    <Box
+                                        sx={{
+                                            display: "grid",
+                                            gridTemplateColumns: "1fr 1fr",
+                                            gap: 1.25
+                                        }}
+                                    >
+                                        <Box>
+                                            <Typography variant="caption" color="text.secondary">
+                                                For Name
+                                            </Typography>
+                                            <Typography
+                                                sx={{
+                                                    overflowWrap: "anywhere"
+                                                }}
+                                            >
+                                                {item.beneficiary_name || "—"}
+                                            </Typography>
+                                        </Box>
+
+                                        <Box>
+                                            <Typography variant="caption" color="text.secondary">
+                                                Nakshathra
+                                            </Typography>
+                                            <Typography>
+                                                {item.nakshathra_en || "—"}
+                                            </Typography>
+                                            {item.nakshathra_ml && (
+                                                <Typography variant="caption" color="text.secondary">
+                                                    {item.nakshathra_ml}
+                                                </Typography>
+                                            )}
+                                        </Box>
+
+                                        <Box>
+                                            <Typography variant="caption" color="text.secondary">
+                                                Quantity
+                                            </Typography>
+                                            <Typography>{item.quantity}</Typography>
+                                        </Box>
+
+                                        <Box>
+                                            <Typography variant="caption" color="text.secondary">
+                                                Rate
+                                            </Typography>
+                                            <Typography>
+                                                ₹{Number(item.rate).toFixed(2)}
+                                            </Typography>
+                                        </Box>
+
+                                        <Box sx={{ gridColumn: "1 / -1" }}>
+                                            <Typography variant="caption" color="text.secondary">
+                                                Amount
+                                            </Typography>
+                                            <Typography
+                                                sx={{
+                                                    fontSize: "1.1rem",
+                                                    fontWeight: 700
+                                                }}
+                                            >
+                                                ₹{Number(item.amount).toFixed(2)}
+                                            </Typography>
+                                        </Box>
+                                    </Box>
+                                </Paper>
+                            ))}
+                        </Box>
+                    </>
                 )}
-
 
                 {/* TOTAL */}
 
                 <Box
                     sx={{
                         display: "flex",
-                        justifyContent:
-                            "flex-end",
-                        mt: 3
+                        justifyContent: { xs: "stretch", sm: "flex-end" },
+                        mt: { xs: 2, md: 3 }
                     }}
                 >
 
                     <Typography
                         variant="h5"
                         sx={{
-                            fontWeight: 700
+                            fontWeight: 700,
+                            fontSize: {
+                                xs: "1.5rem",
+                                sm: "1.75rem",
+                                md: "2rem"
+                            }
                         }}
                     >
 

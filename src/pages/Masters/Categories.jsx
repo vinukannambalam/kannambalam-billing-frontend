@@ -431,14 +431,21 @@ export default function Categories() {
                     justifyContent:
                         "space-between",
                     alignItems: "center",
-                    mb: 3
+                    mb: { xs: 2, md: 3 },
+                    flexWrap: "wrap",
+                    gap: { xs: 1.5, sm: 2 }
                 }}
             >
 
                 <Typography
                     variant="h4"
                     sx={{
-                        fontWeight: 600
+                        fontWeight: 600,
+                        fontSize: {
+                            xs: "1.5rem",
+                            sm: "1.75rem",
+                            md: "2.125rem"
+                        }
                     }}
                 >
                     Categories
@@ -486,11 +493,21 @@ export default function Categories() {
             <Paper
                 sx={{
                     borderRadius: 2,
-                    overflow: "hidden"
+                    overflowX: "auto",
+                    overflowY: "hidden"
                 }}
             >
 
-                <Table>
+                <Table
+                    size="small"
+                    sx={{
+                        minWidth: { xs: 620, sm: 700 },
+                        "& .MuiTableCell-root": {
+                            px: { xs: 1, sm: 1.5, md: 2 },
+                            py: { xs: 1.25, sm: 1.5 }
+                        }
+                    }}
+                >
 
                     <TableHead>
 
@@ -757,12 +774,25 @@ export default function Categories() {
                 </DialogContent>
 
 
-                <DialogActions>
+                <DialogActions
+                    sx={{
+                        flexDirection: { xs: "column-reverse", sm: "row" },
+                        alignItems: { xs: "stretch", sm: "center" },
+                        gap: { xs: 1, sm: 0 },
+                        px: { xs: 2, sm: 3 },
+                        pb: { xs: 2, sm: 1 }
+                    }}
+                >
 
                     <Button
                         onClick={() =>
                             setDialogOpen(false)
                         }
+                        fullWidth
+                        sx={{
+                            minHeight: 48,
+                            width: { xs: "100%", sm: "auto" }
+                        }}
                     >
                         Cancel
                     </Button>
@@ -772,6 +802,11 @@ export default function Categories() {
                         variant="contained"
                         onClick={handleSave}
                         disabled={loading}
+                        fullWidth
+                        sx={{
+                            minHeight: 48,
+                            width: { xs: "100%", sm: "auto" }
+                        }}
                     >
 
                         {editingCategory

@@ -572,8 +572,9 @@ export default function Offerings() {
             <Typography
                 variant="h4"
                 sx={{
-                    mb: 3,
-                    fontWeight: 600
+                    mb: { xs: 2, md: 3 },
+                    fontWeight: 600,
+                    fontSize: { xs: "1.5rem", sm: "1.75rem", md: "2.125rem" }
                 }}
             >
                 Offerings
@@ -586,8 +587,8 @@ export default function Offerings() {
 
             <Paper
                 sx={{
-                    p: 3,
-                    mb: 3
+                    p: { xs: 1.75, sm: 2.5, md: 3 },
+                    mb: { xs: 2, md: 3 }
                 }}
             >
 
@@ -608,9 +609,10 @@ export default function Offerings() {
                 <Box
                     sx={{
                         display: "flex",
-                        gap: 2,
-                        alignItems: "center",
-                        flexWrap: "wrap"
+                        gap: { xs: 1.5, sm: 2 },
+                        alignItems: { xs: "stretch", sm: "center" },
+                        flexWrap: "wrap",
+                        flexDirection: { xs: "column", sm: "row" }
                     }}
                 >
 
@@ -624,8 +626,11 @@ export default function Offerings() {
                                 e.target.value
                             )
                         }
+                        fullWidth
                         sx={{
-                            minWidth: 250
+                            minWidth: 250,
+                            width: { xs: "100%", sm: 250 },
+                            maxWidth: "100%"
                         }}
                     />
 
@@ -640,8 +645,11 @@ export default function Offerings() {
                                 e.target.value
                             )
                         }
+                        fullWidth
                         sx={{
-                            minWidth: 300
+                            minWidth: 300,
+                            width: { xs: "100%", sm: 300 },
+                            maxWidth: "100%"
                         }}
                     />
 
@@ -657,8 +665,11 @@ export default function Offerings() {
                                 e.target.value
                             )
                         }
+                        fullWidth
                         sx={{
-                            minWidth: 200
+                            minWidth: 200,
+                            width: { xs: "100%", sm: 200 },
+                            maxWidth: "100%"
                         }}
                     >
 
@@ -702,8 +713,10 @@ export default function Offerings() {
                         inputProps={{
                             min: 0
                         }}
+                        fullWidth
                         sx={{
-                            width: 150
+                            width: { xs: "100%", sm: 150 },
+                            maxWidth: "100%"
                         }}
                     />
 
@@ -855,7 +868,23 @@ export default function Offerings() {
                 />
 
 
-                <Table>
+                <Box
+                    sx={{
+                        width: "100%",
+                        overflowX: "auto",
+                        WebkitOverflowScrolling: "touch"
+                    }}
+                >
+                    <Table
+                        size="small"
+                        sx={{
+                            minWidth: { xs: 900, sm: 980 },
+                            "& .MuiTableCell-root": {
+                                px: { xs: 1, sm: 1.5, md: 2 },
+                                py: { xs: 1.25, sm: 1.5 }
+                            }
+                        }}
+                    >
 
                     <TableHead>
 
@@ -1039,7 +1068,8 @@ export default function Offerings() {
 
                     </TableBody>
 
-                </Table>
+                    </Table>
+                </Box>
 
             </Paper>
 

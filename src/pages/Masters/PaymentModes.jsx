@@ -387,6 +387,7 @@ export default function PaymentModes() {
                     variant="h4"
                     sx={{
                         fontWeight: 600,
+                        fontSize: { xs: "1.5rem", sm: "1.75rem", md: "2.125rem" },
                         whiteSpace: "nowrap"
                     }}
                 >
@@ -463,12 +464,22 @@ export default function PaymentModes() {
             <Paper
                 sx={{
                     width: "100%",
-                    overflow: "hidden",
+                    overflowX: "auto",
+                    overflowY: "hidden",
                     borderRadius: 2
                 }}
             >
 
-                <Table>
+                <Table
+                    size="small"
+                    sx={{
+                        minWidth: { xs: 560, sm: 650 },
+                        "& .MuiTableCell-root": {
+                            px: { xs: 1, sm: 1.5, md: 2 },
+                            py: { xs: 1.25, sm: 1.5 }
+                        }
+                    }}
+                >
 
                     <TableHead>
 
@@ -716,7 +727,15 @@ export default function PaymentModes() {
                 </DialogContent>
 
 
-                <DialogActions>
+                <DialogActions
+                    sx={{
+                        flexDirection: { xs: "column-reverse", sm: "row" },
+                        alignItems: { xs: "stretch", sm: "center" },
+                        gap: { xs: 1, sm: 0 },
+                        px: { xs: 2, sm: 3 },
+                        pb: { xs: 2, sm: 1 }
+                    }}
+                >
 
                     <Button
                         onClick={() =>

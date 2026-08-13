@@ -220,7 +220,9 @@ export default function ReceiptView() {
 
                 <Alert
                     severity="error"
-                    sx={{ mb: 3 }}
+                    sx={{
+                        mb: { xs: 2, md: 3 }
+                    }}
                 >
 
                     {error ||
@@ -237,6 +239,11 @@ export default function ReceiptView() {
                     onClick={() =>
                         navigate("/receipts")
                     }
+                    fullWidth
+                    sx={{
+                        minHeight: 48,
+                        width: { xs: "100%", sm: "auto" }
+                    }}
                 >
 
                     Back to Receipts
@@ -301,14 +308,22 @@ export default function ReceiptView() {
                     justifyContent:
                         "space-between",
                     alignItems: "center",
-                    mb: 3
+                    mb: { xs: 1.5, sm: 2.5, md: 3 },
+                    flexDirection: { xs: "column", sm: "row" },
+                    alignItems: { xs: "stretch", sm: "center" },
+                    gap: { xs: 1.5, sm: 2 }
                 }}
             >
 
                 <Typography
                     variant="h4"
                     sx={{
-                        fontWeight: 600
+                        fontWeight: 600,
+                        fontSize: {
+                            xs: "1.5rem",
+                            sm: "1.75rem",
+                            md: "2.125rem"
+                        }
                     }}
                 >
 
@@ -320,12 +335,19 @@ export default function ReceiptView() {
                 <Box
                     sx={{
                         display: "flex",
-                        gap: 2
+                        gap: 1,
+                        flexDirection: { xs: "column", sm: "row" },
+                        width: { xs: "100%", sm: "auto" }
                     }}
                 >
 
                     <Button
                         variant="outlined"
+                        fullWidth
+                        sx={{
+                            minHeight: 48,
+                            width: { xs: "100%", sm: "auto" }
+                        }}
                         startIcon={
                             <ArrowBackIcon />
                         }
@@ -346,6 +368,11 @@ export default function ReceiptView() {
                         startIcon={
                             <PrintIcon />
                         }
+                        fullWidth
+                        sx={{
+                            minHeight: 48,
+                            width: { xs: "100%", sm: "auto" }
+                        }}
                         onClick={
                             handlePrint
                         }
@@ -366,8 +393,9 @@ export default function ReceiptView() {
 
             <Paper
                 sx={{
-                    p: 4,
-                    borderRadius: 2
+                    p: { xs: 1.5, sm: 2.5, md: 4 },
+                    borderRadius: { xs: 1.5, md: 2 },
+                    overflow: "hidden"
                 }}
             >
 
@@ -383,7 +411,12 @@ export default function ReceiptView() {
                     <Typography
                         variant="h5"
                         sx={{
-                            fontWeight: 700
+                            fontWeight: 700,
+                            fontSize: {
+                                xs: "1.25rem",
+                                sm: "1.5rem",
+                                md: "1.5rem"
+                            }
                         }}
                     >
 
@@ -659,15 +692,35 @@ export default function ReceiptView() {
                 </Typography>
 
 
-                <TableContainer>
+                <TableContainer
+                    sx={{
+                        width: "100%",
+                        overflowX: "auto",
+                        WebkitOverflowScrolling: "touch"
+                    }}
+                >
 
-                    <Table>
+                    <Table
+                        size="small"
+                        sx={{
+                            minWidth: { xs: 720, sm: 760 },
+                            "& .MuiTableCell-root": {
+                                px: { xs: 1, sm: 2 },
+                                py: { xs: 1, sm: 1.5 }
+                            }
+                        }}
+                    >
 
                         <TableHead>
 
                             <TableRow>
 
-                                <TableCell>
+                                <TableCell
+                                    sx={{
+                                        px: { xs: 1, sm: 2 },
+                                        py: { xs: 1, sm: 1.5 }
+                                    }}
+                                >
                                     #
                                 </TableCell>
 
@@ -860,7 +913,13 @@ export default function ReceiptView() {
                     <Typography
                         variant="h5"
                         sx={{
-                            fontWeight: 700
+                            fontWeight: 700,
+                            fontSize: {
+                                xs: "1.35rem",
+                                sm: "1.6rem",
+                                md: "1.5rem"
+                            },
+                            textAlign: "right"
                         }}
                     >
 

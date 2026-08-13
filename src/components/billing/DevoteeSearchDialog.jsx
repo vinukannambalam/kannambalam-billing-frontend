@@ -407,6 +407,13 @@ export default function DevoteeSearchDialog({
     ];
 
 
+    // Hide secondary columns on narrow screens so the grid remains usable.
+    const columnVisibilityModel = {
+        full_name_ml: false,
+        address: false
+    };
+
+
     // ==================================================
     // SELECT EXISTING DEVOTEE
     // ==================================================
@@ -442,9 +449,22 @@ export default function DevoteeSearchDialog({
                 onClose={onClose}
                 maxWidth="lg"
                 fullWidth
+                fullScreen={false}
+                PaperProps={{
+                    sx: {
+                        m: { xs: 1, sm: 2 },
+                        width: { xs: "calc(100% - 16px)", sm: "calc(100% - 32px)" },
+                        maxHeight: { xs: "calc(100% - 16px)", sm: "calc(100% - 32px)" }
+                    }
+                }}
             >
 
-                <DialogTitle>
+                <DialogTitle
+                    sx={{
+                        px: { xs: 2, sm: 3 },
+                        py: { xs: 1.5, sm: 2 }
+                    }}
+                >
                     Search Devotee
                 </DialogTitle>
 
@@ -462,9 +482,10 @@ export default function DevoteeSearchDialog({
                         <Box
                             sx={{
                                 display: "flex",
-                                gap: 2,
-                                mb: 2,
-                                alignItems: "center"
+                                flexDirection: { xs: "column", sm: "row" },
+                                gap: { xs: 1.25, sm: 2 },
+                                mb: { xs: 1.5, sm: 2 },
+                                alignItems: "stretch"
                             }}
                         >
 
@@ -490,10 +511,11 @@ export default function DevoteeSearchDialog({
                                     openAddDevotee
                                 }
                                 sx={{
-                                    minWidth: 190,
-                                    height: 40,
-                                    whiteSpace:
-                                        "nowrap"
+                                    minWidth: { xs: 0, sm: 190 },
+                                    minHeight: 48,
+                                    height: { xs: 48, sm: 40 },
+                                    width: { xs: "100%", sm: "auto" },
+                                    whiteSpace: "nowrap"
                                 }}
                             >
                                 Add New Devotee
@@ -518,7 +540,7 @@ export default function DevoteeSearchDialog({
 
                         <Box
                             sx={{
-                                height: 400,
+                                height: { xs: 360, sm: 400 },
                                 width: "100%"
                             }}
                         >
@@ -528,6 +550,10 @@ export default function DevoteeSearchDialog({
                                 rows={rows}
 
                                 columns={columns}
+
+                                columnVisibilityModel={
+                                    columnVisibilityModel
+                                }
 
                                 loading={loading}
 
@@ -558,13 +584,22 @@ export default function DevoteeSearchDialog({
                                 }
 
                                 sx={{
-
-                                    "& .selected-devotee-row":
-                                        {
-                                            backgroundColor:
-                                                "rgba(25, 118, 210, 0.12)"
-                                        }
-
+                                    "& .selected-devotee-row": {
+                                        backgroundColor:
+                                            "rgba(25, 118, 210, 0.12)"
+                                    },
+                                    "& .MuiDataGrid-columnHeaderTitle": {
+                                        fontWeight: 600
+                                    },
+                                    "& .MuiDataGrid-cell": {
+                                        py: { xs: 1, sm: 0.5 }
+                                    },
+                                    "& .MuiDataGrid-row": {
+                                        minHeight: { xs: "56px !important", sm: "52px !important" }
+                                    },
+                                    "& .MuiDataGrid-virtualScroller": {
+                                        overflowX: { xs: "auto", sm: "auto" }
+                                    }
                                 }}
 
                                 pageSizeOptions={[
@@ -591,10 +626,23 @@ export default function DevoteeSearchDialog({
                 </DialogContent>
 
 
-                <DialogActions>
+                <DialogActions
+                    sx={{
+                        px: { xs: 2, sm: 3 },
+                        py: { xs: 1.5, sm: 2 },
+                        gap: 1,
+                        flexDirection: { xs: "column-reverse", sm: "row" },
+                        alignItems: { xs: "stretch", sm: "center" }
+                    }}
+                >
 
                     <Button
                         onClick={onClose}
+                        fullWidth
+                        sx={{
+                            minHeight: 48,
+                            width: { xs: "100%", sm: "auto" }
+                        }}
                     >
                         Cancel
                     </Button>
@@ -604,6 +652,11 @@ export default function DevoteeSearchDialog({
                         variant="contained"
                         disabled={!selectedRow}
                         onClick={handleSelect}
+                        fullWidth
+                        sx={{
+                            minHeight: 48,
+                            width: { xs: "100%", sm: "auto" }
+                        }}
                     >
                         Select
                     </Button>
@@ -622,9 +675,21 @@ export default function DevoteeSearchDialog({
                 onClose={closeAddDevotee}
                 maxWidth="sm"
                 fullWidth
+                PaperProps={{
+                    sx: {
+                        m: { xs: 1, sm: 2 },
+                        width: { xs: "calc(100% - 16px)", sm: "calc(100% - 32px)" },
+                        maxHeight: { xs: "calc(100% - 16px)", sm: "calc(100% - 32px)" }
+                    }
+                }}
             >
 
-                <DialogTitle>
+                <DialogTitle
+                    sx={{
+                        px: { xs: 2, sm: 3 },
+                        py: { xs: 1.5, sm: 2 }
+                    }}
+                >
                     Add New Devotee
                 </DialogTitle>
 
@@ -655,6 +720,7 @@ export default function DevoteeSearchDialog({
                             fullWidth
                             required
                             label="Devotee Name"
+                            size="small"
                             value={
                                 newDevotee.full_name
                             }
@@ -673,6 +739,7 @@ export default function DevoteeSearchDialog({
                         <TextField
                             fullWidth
                             label="Malayalam Name"
+                            size="small"
                             value={
                                 newDevotee.full_name_ml
                             }
@@ -690,6 +757,8 @@ export default function DevoteeSearchDialog({
                         <TextField
                             fullWidth
                             label="Phone"
+                            size="small"
+                            type="tel"
                             value={
                                 newDevotee.phone
                             }
@@ -707,6 +776,7 @@ export default function DevoteeSearchDialog({
                         <TextField
                             fullWidth
                             label="Address"
+                            size="small"
                             value={
                                 newDevotee.address
                             }
@@ -730,13 +800,26 @@ export default function DevoteeSearchDialog({
                 <Divider />
 
 
-                <DialogActions>
+                <DialogActions
+                    sx={{
+                        px: { xs: 2, sm: 3 },
+                        py: { xs: 1.5, sm: 2 },
+                        gap: 1,
+                        flexDirection: { xs: "column-reverse", sm: "row" },
+                        alignItems: { xs: "stretch", sm: "center" }
+                    }}
+                >
 
                     <Button
                         onClick={
                             closeAddDevotee
                         }
                         disabled={addLoading}
+                        fullWidth
+                        sx={{
+                            minHeight: 48,
+                            width: { xs: "100%", sm: "auto" }
+                        }}
                     >
                         Cancel
                     </Button>
@@ -748,6 +831,11 @@ export default function DevoteeSearchDialog({
                             handleAddDevotee
                         }
                         disabled={addLoading}
+                        fullWidth
+                        sx={{
+                            minHeight: 48,
+                            width: { xs: "100%", sm: "auto" }
+                        }}
                     >
 
                         {addLoading

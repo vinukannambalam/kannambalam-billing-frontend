@@ -67,23 +67,39 @@ export default function OfferingSearchDialog({
             onClose={onClose}
             fullWidth
             maxWidth="md"
+            PaperProps={{
+                sx: {
+                    m: { xs: 1, sm: 2 },
+                    width: { xs: "calc(100% - 16px)", sm: "calc(100% - 32px)" },
+                    maxHeight: { xs: "calc(100% - 16px)", sm: "calc(100% - 32px)" }
+                }
+            }}
         >
 
-            <DialogTitle>
-
+            <DialogTitle
+                sx={{
+                    px: { xs: 2, sm: 3 },
+                    py: { xs: 1.5, sm: 2 }
+                }}
+            >
                 Select Offering
-
             </DialogTitle>
 
-            <DialogContent>
+            <DialogContent
+                sx={{
+                    px: { xs: 2, sm: 3 },
+                    py: { xs: 1, sm: 2 }
+                }}
+            >
 
                 <TextField
                     fullWidth
                     label="Search Offering"
-                    sx={{ mt: 1, mb: 2 }}
+                    size="small"
+                    sx={{ mt: 1, mb: { xs: 1.5, sm: 2 } }}
                 />
 
-                <div style={{ height: 300 }}>
+                <div style={{ height: 300, width: "100%" }}>
 
                     <DataGrid
 
@@ -95,19 +111,37 @@ export default function OfferingSearchDialog({
                             setSelected(params.row)
                         }
 
+                        sx={{
+                            "& .MuiDataGrid-columnHeaderTitle": {
+                                fontWeight: 600
+                            },
+                            "& .MuiDataGrid-row": {
+                                minHeight: { xs: "52px !important", sm: "52px !important" }
+                            },
+                            "& .MuiDataGrid-cell": {
+                                py: { xs: 1, sm: 0.5 }
+                            }
+                        }}
+
                     />
 
                 </div>
 
-                <Grid container spacing={2} sx={{ mt: 2 }}>
+                <Grid
+                    container
+                    spacing={2}
+                    sx={{ mt: { xs: 1, sm: 2 } }}
+                >
 
-                    <Grid item xs={4}>
+                    <Grid item xs={12} sm={4}>
 
                         <TextField
                             fullWidth
                             type="number"
                             label="Quantity"
                             value={qty}
+                            inputProps={{ min: 1 }}
+                            size="small"
                             onChange={(e) =>
                                 setQty(Number(e.target.value))
                             }
@@ -119,12 +153,25 @@ export default function OfferingSearchDialog({
 
             </DialogContent>
 
-            <DialogActions>
+            <DialogActions
+                sx={{
+                    px: { xs: 2, sm: 3 },
+                    py: { xs: 1.5, sm: 2 },
+                    gap: 1,
+                    flexDirection: { xs: "column-reverse", sm: "row" },
+                    alignItems: { xs: "stretch", sm: "center" }
+                }}
+            >
 
-                <Button onClick={onClose}>
-
+                <Button
+                    onClick={onClose}
+                    fullWidth
+                    sx={{
+                        minHeight: 48,
+                        width: { xs: "100%", sm: "auto" }
+                    }}
+                >
                     Cancel
-
                 </Button>
 
                 <Button
@@ -132,6 +179,11 @@ export default function OfferingSearchDialog({
                     variant="contained"
 
                     disabled={!selected}
+                    fullWidth
+                    sx={{
+                        minHeight: 48,
+                        width: { xs: "100%", sm: "auto" }
+                    }}
 
                     onClick={() => {
 

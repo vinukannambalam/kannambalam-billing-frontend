@@ -477,10 +477,11 @@ export default function Devotees() {
                 sx={{
                     display: "flex",
                     justifyContent: "space-between",
-                    alignItems: "center",
-                    mb: 3,
+                    alignItems: { xs: "stretch", sm: "center" },
+                    flexDirection: { xs: "column", md: "row" },
+                    mb: { xs: 2, md: 3 },
                     width: "100%",
-                    gap: 2
+                    gap: { xs: 1.5, md: 2 }
                 }}
             >
 
@@ -489,7 +490,12 @@ export default function Devotees() {
                     sx={{
                         fontWeight: 600,
                         textAlign: "left",
-                        whiteSpace: "nowrap"
+                        whiteSpace: "nowrap",
+                        fontSize: {
+                            xs: "1.5rem",
+                            sm: "1.75rem",
+                            md: "2.125rem"
+                        }
                     }}
                 >
                     Devotees
@@ -499,8 +505,10 @@ export default function Devotees() {
                 <Box
                     sx={{
                         display: "flex",
-                        gap: 2,
-                        alignItems: "center"
+                        gap: { xs: 1, sm: 1.5, md: 2 },
+                        alignItems: { xs: "stretch", sm: "center" },
+                        flexDirection: { xs: "column", sm: "row" },
+                        width: { xs: "100%", md: "auto" }
                     }}
                 >
 
@@ -515,7 +523,8 @@ export default function Devotees() {
                             )
                         }
                         sx={{
-                            width: 320
+                            width: { xs: "100%", sm: 320 },
+                            maxWidth: "100%"
                         }}
                     />
 
@@ -527,6 +536,11 @@ export default function Devotees() {
                             onClick={
                                 handleClearSearch
                             }
+                            fullWidth
+                            sx={{
+                                minHeight: 48,
+                                width: { xs: "100%", sm: "auto" }
+                            }}
                         >
                             Clear
                         </Button>
@@ -540,6 +554,11 @@ export default function Devotees() {
                             <AddIcon />
                         }
                         onClick={handleNew}
+                        fullWidth
+                        sx={{
+                            minHeight: 48,
+                            width: { xs: "100%", sm: "auto" }
+                        }}
                     >
                         New Devotee
                     </Button>
@@ -558,7 +577,7 @@ export default function Devotees() {
                 <Typography
                     variant="body2"
                     sx={{
-                        mb: 2,
+                        mb: { xs: 1.5, md: 2 },
                         color:
                             "text.secondary"
                     }}
@@ -600,16 +619,29 @@ export default function Devotees() {
 
             <Paper
                 sx={{
-                    borderRadius: 2,
+                    borderRadius: { xs: 1.5, md: 2 },
                     overflow: "hidden",
                     width: "100%"
                 }}
             >
 
+                <Box
+                    sx={{
+                        width: "100%",
+                        overflowX: "auto",
+                        WebkitOverflowScrolling: "touch"
+                    }}
+                >
+
                 <Table
                     sx={{
                         width: "100%",
-                        tableLayout: "fixed"
+                        minWidth: { xs: 820, sm: 900 },
+                        tableLayout: "fixed",
+                        "& .MuiTableCell-root": {
+                            px: { xs: 1, sm: 1.5, md: 2 },
+                            py: { xs: 1.25, sm: 1.5 }
+                        }
                     }}
                 >
 
@@ -905,6 +937,8 @@ export default function Devotees() {
 
                 </Table>
 
+                </Box>
+
             </Paper>
 
 
@@ -930,7 +964,12 @@ export default function Devotees() {
                 </DialogTitle>
 
 
-                <DialogContent>
+                <DialogContent
+                    sx={{
+                        px: { xs: 2, sm: 3 },
+                        py: { xs: 1, sm: 2 }
+                    }}
+                >
 
                     <TextField
                         fullWidth
@@ -1040,12 +1079,25 @@ export default function Devotees() {
                 </DialogContent>
 
 
-                <DialogActions>
+                <DialogActions
+                    sx={{
+                        px: { xs: 2, sm: 3 },
+                        pb: { xs: 2, sm: 2 },
+                        pt: 1,
+                        gap: 1,
+                        flexDirection: { xs: "column-reverse", sm: "row" }
+                    }}
+                >
 
                     <Button
                         onClick={() =>
                             setDialogOpen(false)
                         }
+                        fullWidth
+                        sx={{
+                            minHeight: 48,
+                            width: { xs: "100%", sm: "auto" }
+                        }}
                     >
                         Cancel
                     </Button>
@@ -1055,6 +1107,11 @@ export default function Devotees() {
                         variant="contained"
                         onClick={handleSave}
                         disabled={loading}
+                        fullWidth
+                        sx={{
+                            minHeight: 48,
+                            width: { xs: "100%", sm: "auto" }
+                        }}
                     >
 
                         {editingDevotee
