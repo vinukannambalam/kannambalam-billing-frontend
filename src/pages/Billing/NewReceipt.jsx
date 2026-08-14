@@ -230,6 +230,14 @@ export default function NewReceipt() {
                     item.beneficiary_name ||
                     "",
 
+                beneficiary_family_person_id:
+                    item.beneficiary_family_person_id ||
+                    null,
+
+                beneficiary_relationship:
+                    item.beneficiary_relationship ||
+                    "Self",
+
                 nakshathra_id:
                     item.nakshathra_id ||
                     null,
