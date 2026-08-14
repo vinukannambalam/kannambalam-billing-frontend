@@ -494,7 +494,7 @@ export default function ReceiptSearch() {
 
             flex: 1,
 
-            minWidth: 150,
+            minWidth: 180,
 
             headerAlign: "left",
 
@@ -514,9 +514,6 @@ export default function ReceiptSearch() {
 
             width: 135,
 
-            cellClassName: "receipt-phone-col",
-            headerClassName: "receipt-phone-col",
-
             headerAlign: "left",
 
             align: "left"
@@ -534,9 +531,6 @@ export default function ReceiptSearch() {
             headerName: "Payment Mode",
 
             width: 130,
-
-            cellClassName: "receipt-payment-col",
-            headerClassName: "receipt-payment-col",
 
             headerAlign: "left",
 
@@ -608,9 +602,6 @@ export default function ReceiptSearch() {
             headerName: "Created By",
 
             width: 160,
-
-            cellClassName: "receipt-createdby-col",
-            headerClassName: "receipt-createdby-col",
 
             headerAlign: "left",
 
@@ -687,9 +678,8 @@ export default function ReceiptSearch() {
                         title="Print Receipt"
                         size="small"
                         onClick={() =>
-                            console.log(
-                                "Print",
-                                params.row.id
+                            navigate(
+                                `/receipts/${params.row.id}?print=1`
                             )
                         }
                     >
@@ -718,13 +708,8 @@ export default function ReceiptSearch() {
             <Typography
                 variant="h4"
                 sx={{
-                    mb: { xs: 1.5, sm: 2.5, md: 3 },
-                    fontWeight: 600,
-                    fontSize: {
-                        xs: "1.5rem",
-                        sm: "1.75rem",
-                        md: "2.125rem"
-                    }
+                    mb: 3,
+                    fontWeight: 600
                 }}
             >
                 Receipts
@@ -737,16 +722,15 @@ export default function ReceiptSearch() {
 
             <Paper
                 sx={{
-                    p: { xs: 1.5, sm: 2, md: 3 },
-                    mb: { xs: 2, md: 3 }
+                    p: 3,
+                    mb: 3
                 }}
             >
 
                 <Typography
                     variant="h6"
                     sx={{
-                        mb: { xs: 1.5, md: 2 },
-                        fontSize: { xs: "1.05rem", sm: "1.15rem", md: "1.25rem" }
+                        mb: 2
                     }}
                 >
                     Search Receipts
@@ -910,10 +894,9 @@ export default function ReceiptSearch() {
 
                 <Box
                     sx={{
-                        mt: { xs: 2, md: 3 },
+                        mt: 3,
                         display: "flex",
-                        flexDirection: { xs: "column", sm: "row" },
-                        gap: { xs: 1, sm: 2 }
+                        gap: 2
                     }}
                 >
 
@@ -925,11 +908,6 @@ export default function ReceiptSearch() {
                         onClick={
                             handleSearch
                         }
-                        fullWidth
-                        sx={{
-                            minHeight: 48,
-                            width: { xs: "100%", sm: "auto" }
-                        }}
                     >
                         Search
                     </Button>
@@ -943,11 +921,6 @@ export default function ReceiptSearch() {
                         onClick={
                             handleClear
                         }
-                        fullWidth
-                        sx={{
-                            minHeight: 48,
-                            width: { xs: "100%", sm: "auto" }
-                        }}
                     >
                         Clear
                     </Button>
@@ -963,7 +936,7 @@ export default function ReceiptSearch() {
 
             <Paper
                 sx={{
-                    height: { xs: 520, sm: 500 },
+                    height: 500,
                     width: "100%"
                 }}
             >
@@ -986,31 +959,6 @@ export default function ReceiptSearch() {
                         }
                     }}
                     disableRowSelectionOnClick
-                    sx={{
-                        "& .MuiDataGrid-columnHeaderTitle": {
-                            fontWeight: 600
-                        },
-                        "& .MuiDataGrid-row": {
-                            minHeight: {
-                                xs: "58px !important",
-                                sm: "52px !important"
-                            }
-                        },
-                        "& .MuiDataGrid-cell": {
-                            py: { xs: 1, sm: 0.5 }
-                        },
-                        "& .MuiDataGrid-virtualScroller": {
-                            overflowX: "auto"
-                        },
-                        "@media (max-width: 600px)": {
-                            "& .receipt-phone-col, & .receipt-payment-col, & .receipt-createdby-col": {
-                                display: "none"
-                            },
-                            "& .MuiDataGrid-columnHeader, & .MuiDataGrid-cell": {
-                                px: 1
-                            }
-                        }
-                    }}
                 />
 
             </Paper>
@@ -1038,8 +986,7 @@ export default function ReceiptSearch() {
                         setSnackbarOpen(false)
                     }
                     sx={{
-                        width: { xs: "calc(100vw - 24px)", sm: "100%" },
-                        maxWidth: { xs: "calc(100vw - 24px)", sm: "none" }
+                        width: "100%"
                     }}
                 >
                     {message}

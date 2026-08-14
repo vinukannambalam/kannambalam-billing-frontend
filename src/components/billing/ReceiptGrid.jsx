@@ -24,7 +24,8 @@ import { apiFetch } from "../../api/api";
 
 export default function ReceiptGrid({
     devotee,
-    onItemsChange
+    onItemsChange,
+    resetKey = 0
 }) {
 
     // =====================================================
@@ -104,6 +105,29 @@ export default function ReceiptGrid({
 
 
     // =====================================================
+    // RESET GRID AFTER SUCCESSFUL RECEIPT SAVE
+    // =====================================================
+
+    useEffect(() => {
+
+        if (resetKey === 0) {
+            return;
+        }
+
+        setItems([]);
+        setOfferingId("");
+        setSelectedFamilyPersonId("");
+        setBeneficiaryName("");
+        setBeneficiaryRelationship("Self");
+        setNakshathra("");
+        setQty(1);
+        setOtherPersonName("");
+        setError("");
+
+    }, [resetKey]);
+
+
+    // =====================================================
     // DEVOTEE CHANGE
     // =====================================================
 
@@ -122,6 +146,8 @@ export default function ReceiptGrid({
             setNakshathra("");
 
             setOtherPersonName("");
+
+            setLoadingFamilyMembers(false);
 
             return;
 
@@ -149,14 +175,19 @@ export default function ReceiptGrid({
                     `/api/devotees/${devotee.id}/family-members`
                 );
 
+            const contentType =
+                response.headers.get("content-type") || "";
+
             const data =
-                await response.json();
+                contentType.includes("application/json")
+                    ? await response.json()
+                    : null;
 
             if (!response.ok) {
 
                 throw new Error(
-                    data.error ||
-                    "Failed to load family members"
+                    data?.error ||
+                    `Failed to load family members (${response.status})`
                 );
 
             }
@@ -567,7 +598,7 @@ export default function ReceiptGrid({
 
     const addItem = () => {
 
-        if (!devotee?.id) {
+        if (!devotee) {
 
             alert(
                 "Please select a devotee first"

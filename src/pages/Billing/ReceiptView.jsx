@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-
 import {
     Box,
     Paper,
@@ -16,23 +15,18 @@ import {
     CircularProgress,
     Alert
 } from "@mui/material";
-
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import PrintIcon from "@mui/icons-material/Print";
-
-import { useParams, useNavigate } from "react-router-dom";
-
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { apiFetch } from "../../api/api";
-
-
+import { printWithRawBT } from "../../utils/thermalReceipt";
 export default function ReceiptView() {
-
     const { id } = useParams();
-
     const navigate = useNavigate();
-
+    const [searchParams] = useSearchParams();
     const printRef = useRef();
-
+    const autoPrintTriggered = useRef(false);
+    const [printedAt, setPrintedAt] = useState(null);
 
     // ==================================================
     // STATE
@@ -60,6 +54,25 @@ export default function ReceiptView() {
         loadReceipt();
 
     }, [id]);
+
+    useEffect(() => {
+
+    if (
+        searchParams.get("print") !== "1" ||
+        !receipt ||
+        loading ||
+        autoPrintTriggered.current
+    ) {
+        return;
+    }
+
+    autoPrintTriggered.current = true;
+
+    setTimeout(() => {
+        handlePrint();
+    }, 500);
+
+}, [receipt, loading, searchParams]);
 
 
     const loadReceipt = async () => {
@@ -178,9 +191,89 @@ export default function ReceiptView() {
 
     const handlePrint = () => {
 
-        window.print();
+    if (!receipt) {
+        return;
+    }
 
+    const receiptForPrinting = {
+        receipt_no:
+            receipt.receipt_no || "",
+
+        receipt_date:
+    receipt.receipt_date
+        ? new Date(receipt.receipt_date)
+            .toLocaleDateString("en-GB")
+            .replace(/\//g, "-")
+        : "",
+
+        created_by_name:
+            receipt.created_by_name || "-",
+
+        created_at:
+            receipt.created_at || null,
+
+        printed_at:
+            new Date().toISOString(),
+
+        devotee: {
+    full_name:
+        receipt.devotee ||
+        receipt.devotee_name ||
+        "",
+
+    phone:
+        receipt.phone || ""
+},
+
+        items: items.map(item => {
+
+    const details =
+        item.item_details || {};
+
+    return {
+        offering_name:
+            item.offering_name || "",
+
+        qty:
+            Number(
+                item.quantity ||
+                item.qty ||
+                1
+            ),
+
+        amount:
+            Number(item.amount || 0),
+
+        beneficiary_name:
+            item.beneficiary_name ||
+            details.beneficiary_name ||
+            "",
+
+        nakshathra_en:
+            item.nakshathra_en ||
+            details.nakshathra_en ||
+            "",
+
+        nakshathra_ml:
+            item.nakshathra_ml ||
+            details.nakshathra_ml ||
+            ""
     };
+}),
+
+        total_amount:
+            Number(
+                receipt.total_amount ||
+                total ||
+                0
+            ),
+
+        payment_mode:
+            receipt.payment_mode || ""
+    };
+
+    printWithRawBT(receiptForPrinting);
+};
 
 
     // ==================================================
@@ -220,9 +313,7 @@ export default function ReceiptView() {
 
                 <Alert
                     severity="error"
-                    sx={{
-                        mb: { xs: 2, md: 3 }
-                    }}
+                    sx={{ mb: 3 }}
                 >
 
                     {error ||
@@ -239,11 +330,6 @@ export default function ReceiptView() {
                     onClick={() =>
                         navigate("/receipts")
                     }
-                    fullWidth
-                    sx={{
-                        minHeight: 48,
-                        width: { xs: "100%", sm: "auto" }
-                    }}
                 >
 
                     Back to Receipts
@@ -294,7 +380,51 @@ export default function ReceiptView() {
     // RENDER
     // ==================================================
 
+    const formatPrintDateTime = (value) => {
+        if (!value) return "-";
+        return new Date(value).toLocaleString("en-IN", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true
+        });
+    };
+
+    const thermalPrintStyles = `
+        .receipt-thermal-print-area { display: none; }
+        @media print {
+            @page { size: 58mm auto; margin: 0; }
+            body { margin: 0 !important; padding: 0 !important; }
+            body * { visibility: hidden !important; }
+            #receipt-thermal-print-area, #receipt-thermal-print-area * { visibility: visible !important; }
+            #receipt-thermal-print-area {
+                display: block !important;
+                position: absolute !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 58mm !important;
+                padding: 3mm !important;
+                box-sizing: border-box !important;
+                font-family: monospace !important;
+                font-size: 10px !important;
+                line-height: 1.25 !important;
+                color: #000 !important;
+                background: #fff !important;
+            }
+            .receipt-thermal-center { text-align: center !important; }
+            .receipt-thermal-line { border-top: 1px dashed #000 !important; margin: 4px 0 !important; }
+            .receipt-thermal-row { display: flex !important; justify-content: space-between !important; gap: 2mm !important; }
+            .receipt-thermal-total { font-weight: 700 !important; }
+            .receipt-thermal-item { margin-bottom: 5px !important; }
+        }
+    `;
+
     return (
+
+        <>
+            <style>{thermalPrintStyles}</style>
 
         <Box ref={printRef}>
 
@@ -308,22 +438,14 @@ export default function ReceiptView() {
                     justifyContent:
                         "space-between",
                     alignItems: "center",
-                    mb: { xs: 1.5, sm: 2.5, md: 3 },
-                    flexDirection: { xs: "column", sm: "row" },
-                    alignItems: { xs: "stretch", sm: "center" },
-                    gap: { xs: 1.5, sm: 2 }
+                    mb: 3
                 }}
             >
 
                 <Typography
                     variant="h4"
                     sx={{
-                        fontWeight: 600,
-                        fontSize: {
-                            xs: "1.5rem",
-                            sm: "1.75rem",
-                            md: "2.125rem"
-                        }
+                        fontWeight: 600
                     }}
                 >
 
@@ -335,19 +457,12 @@ export default function ReceiptView() {
                 <Box
                     sx={{
                         display: "flex",
-                        gap: 1,
-                        flexDirection: { xs: "column", sm: "row" },
-                        width: { xs: "100%", sm: "auto" }
+                        gap: 2
                     }}
                 >
 
                     <Button
                         variant="outlined"
-                        fullWidth
-                        sx={{
-                            minHeight: 48,
-                            width: { xs: "100%", sm: "auto" }
-                        }}
                         startIcon={
                             <ArrowBackIcon />
                         }
@@ -368,11 +483,6 @@ export default function ReceiptView() {
                         startIcon={
                             <PrintIcon />
                         }
-                        fullWidth
-                        sx={{
-                            minHeight: 48,
-                            width: { xs: "100%", sm: "auto" }
-                        }}
                         onClick={
                             handlePrint
                         }
@@ -393,9 +503,8 @@ export default function ReceiptView() {
 
             <Paper
                 sx={{
-                    p: { xs: 1.5, sm: 2.5, md: 4 },
-                    borderRadius: { xs: 1.5, md: 2 },
-                    overflow: "hidden"
+                    p: 4,
+                    borderRadius: 2
                 }}
             >
 
@@ -411,12 +520,7 @@ export default function ReceiptView() {
                     <Typography
                         variant="h5"
                         sx={{
-                            fontWeight: 700,
-                            fontSize: {
-                                xs: "1.25rem",
-                                sm: "1.5rem",
-                                md: "1.5rem"
-                            }
+                            fontWeight: 700
                         }}
                     >
 
@@ -450,12 +554,10 @@ export default function ReceiptView() {
                     sx={{ mb: 3 }}
                 >
 
-                    {/* RECEIPT NO */}
-
                     <Grid
                         item
                         xs={12}
-                        md={3}
+                        md={4}
                     >
 
                         <Typography
@@ -481,12 +583,10 @@ export default function ReceiptView() {
                     </Grid>
 
 
-                    {/* DATE */}
-
                     <Grid
                         item
                         xs={12}
-                        md={3}
+                        md={4}
                     >
 
                         <Typography
@@ -507,12 +607,10 @@ export default function ReceiptView() {
                     </Grid>
 
 
-                    {/* PAYMENT MODE */}
-
                     <Grid
                         item
                         xs={12}
-                        md={3}
+                        md={4}
                     >
 
                         <Typography
@@ -531,32 +629,6 @@ export default function ReceiptView() {
                             {receipt.mode_name_ml
                                 ? ` - ${receipt.mode_name_ml}`
                                 : ""}
-
-                        </Typography>
-
-                    </Grid>
-
-
-                    {/* CREATED BY */}
-
-                    <Grid
-                        item
-                        xs={12}
-                        md={3}
-                    >
-
-                        <Typography
-                            variant="caption"
-                            color="text.secondary"
-                        >
-
-                            Created By
-
-                        </Typography>
-
-                        <Typography>
-
-                            {receipt.created_by_name || "-"}
 
                         </Typography>
 
@@ -692,35 +764,15 @@ export default function ReceiptView() {
                 </Typography>
 
 
-                <TableContainer
-                    sx={{
-                        width: "100%",
-                        overflowX: "auto",
-                        WebkitOverflowScrolling: "touch"
-                    }}
-                >
+                <TableContainer>
 
-                    <Table
-                        size="small"
-                        sx={{
-                            minWidth: { xs: 720, sm: 760 },
-                            "& .MuiTableCell-root": {
-                                px: { xs: 1, sm: 2 },
-                                py: { xs: 1, sm: 1.5 }
-                            }
-                        }}
-                    >
+                    <Table>
 
                         <TableHead>
 
                             <TableRow>
 
-                                <TableCell
-                                    sx={{
-                                        px: { xs: 1, sm: 2 },
-                                        py: { xs: 1, sm: 1.5 }
-                                    }}
-                                >
+                                <TableCell>
                                     #
                                 </TableCell>
 
@@ -739,25 +791,19 @@ export default function ReceiptView() {
                                 <TableCell
                                     align="right"
                                 >
-
                                     Qty
-
                                 </TableCell>
 
                                 <TableCell
                                     align="right"
                                 >
-
                                     Rate
-
                                 </TableCell>
 
                                 <TableCell
                                     align="right"
                                 >
-
                                     Amount
-
                                 </TableCell>
 
                             </TableRow>
@@ -913,13 +959,7 @@ export default function ReceiptView() {
                     <Typography
                         variant="h5"
                         sx={{
-                            fontWeight: 700,
-                            fontSize: {
-                                xs: "1.35rem",
-                                sm: "1.6rem",
-                                md: "1.5rem"
-                            },
-                            textAlign: "right"
+                            fontWeight: 700
                         }}
                     >
 
@@ -961,7 +1001,57 @@ export default function ReceiptView() {
 
             </Paper>
 
+            <Box
+                className="receipt-thermal-print-area"
+                id="receipt-thermal-print-area"
+            >
+                <div className="receipt-thermal-center">
+                    Kannambalath Shree Bhadrakali<br />
+                    Shankarammavan Kshethram
+                </div>
+                <div className="receipt-thermal-line" />
+                <div>Receipt: {receipt.receipt_no}</div>
+                <div>Date: {formattedDate}</div>
+                <div>Devotee: {receipt.devotee || receipt.devotee_name || "-"}</div>
+                {receipt.phone && <div>Phone: {receipt.phone}</div>}
+                <div className="receipt-thermal-line" />
+
+                {items.map((item, index) => {
+                    const details = item.item_details || {};
+                    return (
+                        <div className="receipt-thermal-item" key={item.id || index}>
+                            <div>{item.offering_name || ""}</div>
+                            <div className="receipt-thermal-row">
+                                <span>Qty {item.quantity || 1}</span>
+                                <span>₹{Number(item.amount || 0).toFixed(2)}</span>
+                            </div>
+                            {details.beneficiary_name && (
+                                <div>For: {details.beneficiary_name}</div>
+                            )}
+                            {(details.nakshathra_en || details.nakshathra_ml) && (
+                                <div>Star: {details.nakshathra_en || details.nakshathra_ml}</div>
+                            )}
+                        </div>
+                    );
+                })}
+
+                <div className="receipt-thermal-line" />
+                <div className="receipt-thermal-row receipt-thermal-total">
+                    <span>TOTAL</span>
+                    <span>₹{Number(receipt.total_amount || total || 0).toFixed(2)}</span>
+                </div>
+                {receipt.payment_mode && <div>Payment: {receipt.payment_mode}</div>}
+                <div className="receipt-thermal-line" />
+                <div>Created By: {receipt.created_by_name || "-"}</div>
+                <div>Created: {formatPrintDateTime(receipt.created_at)}</div>
+                <div>Printed: {formatPrintDateTime(printedAt)}</div>
+                <div className="receipt-thermal-line" />
+                <div className="receipt-thermal-center">Thank You</div>
+            </Box>
+
         </Box>
+
+        </>
 
     );
 

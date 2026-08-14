@@ -17,10 +17,12 @@ import {
 } from "@mui/material";
 import PersonSearchIcon from "@mui/icons-material/PersonSearch";
 import SaveIcon from "@mui/icons-material/Save";
-import PrintIcon from "@mui/icons-material/Print";
 import DevoteeSearchDialog from "../../components/billing/DevoteeSearchDialog";
 import ReceiptGrid from "../../components/billing/ReceiptGrid";
 import { apiFetch } from "../../api/api";
+import {printThermalReceipt} from "../../utils/thermalReceipt";
+import PrintIcon from "@mui/icons-material/Print";
+import {printWithRawBT} from "../../utils/thermalReceipt";
 
 // ======================================================
 // NEW RECEIPT
@@ -56,6 +58,8 @@ export default function NewReceipt() {
     const [remarks, setRemarks] = useState("");
     const [items, setItems] = useState([]);
     const [saving, setSaving] = useState(false);
+    const [resetGridKey, setResetGridKey] = useState(0);
+    const [printData, setPrintData] = useState(null);
     const [message, setMessage] = useState("");
     const [messageType, setMessageType] = useState("success");
     const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -434,20 +438,119 @@ export default function NewReceipt() {
 
 
             // ------------------------------------------
-            // SUCCESS
+            // SUCCESS - CAPTURE DATA FOR THERMAL PRINT
+            // BEFORE CLEARING THE FORM.
             // ------------------------------------------
 
+            const selectedPaymentMode =
+                paymentModes.find(
+                    mode =>
+                        String(mode.id) ===
+                        String(paymentModeId)
+                );
+
+            const billingUser =
+                (() => {
+                    try {
+                        return JSON.parse(
+                            localStorage.getItem(
+                                "billing_user"
+                            ) || "{}"
+                        );
+                    }
+                    catch {
+                        return {};
+                    }
+                })();
+
+            const receiptForPrinting = {
+                receipt_no:
+                    data?.receipt?.receipt_no ||
+                    "",
+                receipt_date:
+        receiptDate
+            ? new Date(receiptDate)
+                .toLocaleDateString("en-GB")
+                .replace(/\//g, "-")
+            : "",
+                created_by_name:
+                    billingUser?.full_name ||
+                    billingUser?.username ||
+                    "-",
+                created_at:
+                    data?.receipt?.created_at ||
+                    new Date().toISOString(),
+                printed_at:
+                    new Date().toISOString(),
+                devotee: {
+                    full_name:
+                        devotee.full_name ||
+                        "",
+                    phone:
+                        devotee.phone ||
+                        ""
+                },
+                items: items.map(item => ({
+                    offering_name:
+                        item.offering_name ||
+                        "",
+                    offering_name_ml:
+                        item.offering_name_ml ||
+                        "",
+                    qty:
+                        Number(
+                            item.qty ||
+                            item.quantity ||
+                            1
+                        ),
+                    rate:
+                        Number(
+                            item.rate ||
+                            0
+                        ),
+                    amount:
+                        Number(
+                            item.amount ||
+                            0
+                        ),
+                    beneficiary_name:
+                        item.beneficiary_name ||
+                        "",
+                    beneficiary_relationship:
+                        item.beneficiary_relationship ||
+                        "",
+                    nakshathra_en:
+                        item.nakshathra_en ||
+                        "",
+                    nakshathra_ml:
+                        item.nakshathra_ml ||
+                        ""
+                })),
+                total_amount:
+                    Number(totalAmount || 0),
+                payment_mode:
+                    selectedPaymentMode?.payment_mode ||
+                    "",
+                payment_mode_ml:
+                    selectedPaymentMode?.mode_name_ml ||
+                    "",
+                remarks:
+                    remarks.trim() ||
+                    ""
+            };
+
+            setPrintData(
+                receiptForPrinting
+            );
+
             showMessage(
-
                 `Receipt ${data.receipt.receipt_no} saved successfully.`,
-
                 "success"
-
             );
 
 
             // ------------------------------------------
-            // CLEAR FORM
+            // CLEAR FORM AND RECEIPT GRID
             // ------------------------------------------
 
             setDevotee({
@@ -466,10 +569,20 @@ export default function NewReceipt() {
 
 
             setItems([]);
+            setResetGridKey(
+                previous => previous + 1
+            );
 
             setRemarks("");
 
             setReceiptDate(today);
+
+            // Print after successful save.
+// Android -> RawBT -> Bluetooth thermal printer
+// Desktop -> normal Chrome printing
+setTimeout(() => {
+    printWithRawBT(receiptForPrinting);
+}, 300);
 
         }
 
@@ -498,23 +611,41 @@ export default function NewReceipt() {
 
 
     // ==================================================
-    // PRINT
+    // PRINT DATE/TIME
     // ==================================================
 
-    const printReceipt = () => {
+    const formatPrintDateTime = (value) => {
 
-        showMessage(
+        if (!value) {
+            return "-";
+        }
 
-            "Print will be connected after receipt saving is completed.",
+        const date =
+            new Date(value);
 
-            "info"
+        if (
+            Number.isNaN(
+                date.getTime()
+            )
+        ) {
+            return String(value);
+        }
 
+        return date.toLocaleString(
+            "en-IN",
+            {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+                hour12: false
+            }
         );
-
     };
 
 
-    // ==================================================
     // RENDER
     // ==================================================
 
@@ -796,6 +927,8 @@ export default function NewReceipt() {
     onItemsChange={
         setItems
     }
+                     resetKey={resetGridKey}
+
 />
 
 
@@ -888,25 +1021,7 @@ export default function NewReceipt() {
                         </Button>
 
 
-                        <Button
-                            variant="outlined"
-                            startIcon={
-                                <PrintIcon />
-                            }
-                            onClick={
-                                printReceipt
-                            }
-                            disabled={
-                                saving
-                            }
-                            fullWidth={true}
-                            sx={{
-                                minHeight: 48,
-                                width: { xs: "100%", sm: "auto" }
-                            }}
-                        >
-                            Print
-                        </Button>
+
 
                     </Box>
 
@@ -914,6 +1029,190 @@ export default function NewReceipt() {
 
             </Paper>
 
+
+            {/* ==================================================
+                THERMAL RECEIPT PRINT AREA
+                Hidden during normal use. Only this 58mm area
+                is printed by the browser.
+            ================================================== */}
+
+            <style>
+                {`
+                    .thermal-print-area {
+                        display: none;
+                    }
+
+                    @media print {
+                        @page {
+                            size: 58mm auto;
+                            margin: 0;
+                        }
+
+                        html,
+                        body {
+                            margin: 0 !important;
+                            padding: 0 !important;
+                            width: 58mm !important;
+                            background: #fff !important;
+                        }
+
+                        body * {
+                            visibility: hidden !important;
+                        }
+
+                        .thermal-print-area,
+                        .thermal-print-area * {
+                            visibility: visible !important;
+                        }
+
+                        .thermal-print-area {
+                            display: block !important;
+                            position: absolute !important;
+                            left: 0 !important;
+                            top: 0 !important;
+                            width: 58mm !important;
+                            box-sizing: border-box !important;
+                            padding: 2mm 1.5mm !important;
+                            margin: 0 !important;
+                            color: #000 !important;
+                            background: #fff !important;
+                            font-family: "Courier New", Courier, monospace !important;
+                            font-size: 10px !important;
+                            line-height: 1.25 !important;
+                            font-weight: 500 !important;
+                        }
+
+                        .thermal-center {
+                            text-align: center !important;
+                        }
+
+                        .thermal-line {
+                            border-top: 1px dashed #000 !important;
+                            margin: 2mm 0 !important;
+                        }
+
+                        .thermal-item {
+                            margin-bottom: 2mm !important;
+                        }
+
+                        .thermal-row {
+                            display: flex !important;
+                            justify-content: space-between !important;
+                            gap: 2mm !important;
+                        }
+
+                        .thermal-total {
+                            font-weight: 700 !important;
+                        }
+                    }
+                `}
+            </style>
+
+            {printData && (
+                <Box
+                    className="thermal-print-area"
+                    id="thermal-print-area"
+                >
+                    <div className="thermal-center">
+                        Kannambalath Shree Bhadrakali
+                        <br />
+                        Shankarammavan Kshethram
+                    </div>
+
+                    <div className="thermal-line" />
+
+                    <div>
+                        Receipt: {printData.receipt_no}
+                    </div>
+                    <div>
+                        Date: {printData.receipt_date}
+                    </div>
+                    <div>
+                        Devotee: {printData.devotee.full_name}
+                    </div>
+
+                    {printData.devotee.phone && (
+                        <div>
+                            Phone: {printData.devotee.phone}
+                        </div>
+                    )}
+
+                    <div className="thermal-line" />
+
+                    {printData.items.map(
+                        (item, index) => (
+                            <div
+                                className="thermal-item"
+                                key={`${item.offering_name}-${index}`}
+                            >
+                                <div>
+                                    {item.offering_name}
+                                </div>
+
+                                <div className="thermal-row">
+                                    <span>
+                                        Qty {item.qty}
+                                    </span>
+                                    <span>
+                                        ₹{Number(item.amount || 0).toFixed(2)}
+                                    </span>
+                                </div>
+
+                                {item.beneficiary_name && (
+                                    <div>
+                                        For: {item.beneficiary_name}
+                                    </div>
+                                )}
+
+                                {item.nakshathra_en && (
+                                    <div>
+                                        Star: {item.nakshathra_en}
+                                    </div>
+                                )}
+                            </div>
+                        )
+                    )}
+
+                    <div className="thermal-line" />
+
+                    <div className="thermal-row thermal-total">
+                        <span>TOTAL</span>
+                        <span>
+                            ₹{Number(printData.total_amount || 0).toFixed(2)}
+                        </span>
+                    </div>
+
+                    {printData.payment_mode && (
+                        <div>
+                            Payment: {printData.payment_mode}
+                        </div>
+                    )}
+
+                    <div className="thermal-line" />
+
+                    <div>
+                        Created By: {printData.created_by_name || "-"}
+                    </div>
+
+                    <div>
+                        Created: {formatPrintDateTime(
+                            printData.created_at
+                        )}
+                    </div>
+
+                    <div>
+                        Printed: {formatPrintDateTime(
+                            printData.printed_at
+                        )}
+                    </div>
+
+                    <div className="thermal-line" />
+
+                    <div className="thermal-center">
+                        Thank You
+                    </div>
+                </Box>
+            )}
 
             {/* DEVOTEE SEARCH */}
 

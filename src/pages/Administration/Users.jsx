@@ -716,9 +716,12 @@ export default function Users() {
             <Box
                 sx={{
                     display: "flex",
+                    flexDirection: { xs: "column", sm: "row" },
                     justifyContent: "space-between",
-                    alignItems: "center",
-                    mb: 3
+                    alignItems: { xs: "stretch", sm: "center" },
+                    mb: 3,
+                    gap: { xs: 1.5, sm: 2 },
+                    width: "100%"
                 }}
             >
 
@@ -736,8 +739,11 @@ export default function Users() {
                     variant="contained"
                     startIcon={<AddIcon />}
                     onClick={openAddDialog}
+                    fullWidth
                     sx={{
-                        backgroundColor: "#8b0000"
+                        backgroundColor: "#8b0000",
+                        width: { xs: "100%", sm: "auto" },
+                        minHeight: 48
                     }}
                 >
                     ADD USER
@@ -773,7 +779,10 @@ export default function Users() {
 
             <Paper
                 sx={{
-                    p: 3
+                    p: { xs: 1, sm: 3 },
+                    width: "100%",
+                    overflowX: "auto",
+                    overflowY: "visible"
                 }}
             >
 
@@ -787,7 +796,11 @@ export default function Users() {
                 </Typography>
 
 
-                <Table>
+                <Table
+                    sx={{
+                        minWidth: { xs: 700, sm: 800 }
+                    }}
+                >
 
                     <TableHead>
 

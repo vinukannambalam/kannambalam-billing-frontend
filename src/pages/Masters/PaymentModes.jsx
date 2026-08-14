@@ -376,10 +376,12 @@ export default function PaymentModes() {
             <Box
                 sx={{
                     display: "flex",
+                    flexDirection: { xs: "column", sm: "row" },
                     justifyContent: "space-between",
-                    alignItems: "center",
+                    alignItems: { xs: "stretch", sm: "center" },
                     mb: 3,
-                    gap: 2
+                    gap: { xs: 1.5, sm: 2 },
+                    width: "100%"
                 }}
             >
 
@@ -398,8 +400,10 @@ export default function PaymentModes() {
                 <Box
                     sx={{
                         display: "flex",
-                        gap: 2,
-                        alignItems: "center"
+                        flexDirection: { xs: "column", sm: "row" },
+                        gap: { xs: 1, sm: 2 },
+                        alignItems: { xs: "stretch", sm: "center" },
+                        width: { xs: "100%", sm: "auto" }
                     }}
                 >
 
@@ -412,7 +416,7 @@ export default function PaymentModes() {
                             setSearch(e.target.value)
                         }
                         sx={{
-                            width: 300
+                            width: { xs: "100%", sm: 300 }
                         }}
                     />
 
@@ -433,6 +437,11 @@ export default function PaymentModes() {
                         variant="contained"
                         startIcon={<AddIcon />}
                         onClick={openAdd}
+                        fullWidth
+                        sx={{
+                            width: { xs: "100%", sm: "auto" },
+                            minHeight: 48
+                        }}
                     >
                         Add Payment Mode
                     </Button>
