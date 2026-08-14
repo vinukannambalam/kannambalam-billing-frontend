@@ -9,7 +9,11 @@ import {
     MenuItem,
     Divider,
     Alert,
-    Snackbar
+    Snackbar,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions
 } from "@mui/material";
 import PersonSearchIcon from "@mui/icons-material/PersonSearch";
 import SaveIcon from "@mui/icons-material/Save";
@@ -37,6 +41,8 @@ export default function NewReceipt() {
     // ==================================================
 
     const [dialogOpen, setDialogOpen] = useState(false);
+    const [confirmDevoteeChangeOpen, setConfirmDevoteeChangeOpen] = useState(false);
+    const [pendingDevotee, setPendingDevotee] = useState(null);
     const [devotee, setDevotee] = useState({
         id: "",
         full_name: "",
@@ -126,7 +132,8 @@ export default function NewReceipt() {
     // DEVOTEE SELECTED
     // ==================================================
     const handleDevoteeSelect = (row) => {
-        setDevotee({
+
+        const newDevotee = {
             id:
                 row.id || "",
             full_name:
@@ -137,8 +144,58 @@ export default function NewReceipt() {
                 row.phone || "",
             address:
                 row.address || ""
-        });
+        };
+
+        // --------------------------------------------------
+        // If there are already offerings for the current
+        // devotee, do not silently carry them to another
+        // devotee. Ask for confirmation first.
+        // --------------------------------------------------
+        if (
+            items.length > 0 &&
+            devotee.id &&
+            String(newDevotee.id) !== String(devotee.id)
+        ) {
+
+            setPendingDevotee(newDevotee);
+            setDialogOpen(false);
+            setConfirmDevoteeChangeOpen(true);
+            return;
+
+        }
+
+        setDevotee(newDevotee);
         setDialogOpen(false);
+    };
+
+    // ==================================================
+    // CONFIRM DEVOTEE CHANGE
+    // ==================================================
+
+    const confirmDevoteeChange = () => {
+
+        if (!pendingDevotee) {
+            setConfirmDevoteeChangeOpen(false);
+            return;
+        }
+
+        // Clear all offerings belonging to the previous devotee.
+        setItems([]);
+
+        // The existing ReceiptGrid devotee-change logic will
+        // then reset For Name and Nakshathra for the new devotee.
+        setDevotee(pendingDevotee);
+
+        setPendingDevotee(null);
+        setConfirmDevoteeChangeOpen(false);
+
+    };
+
+    const cancelDevoteeChange = () => {
+
+        setPendingDevotee(null);
+        setConfirmDevoteeChangeOpen(false);
+
     };
 
     // ==================================================
@@ -184,6 +241,32 @@ export default function NewReceipt() {
 
             showMessage(
                 "Please add at least one offering",
+                "error"
+            );
+
+            return;
+
+        }
+
+        // ----------------------------------------------
+        // Safety check: every offering must belong to the
+        // currently selected devotee. This prevents stale
+        // offering rows from ever being submitted if the
+        // devotee changes through an unexpected UI path.
+        // ----------------------------------------------
+
+        const hasMismatchedOffering =
+            items.some(
+                item =>
+                    String(
+                        item.beneficiary_devotee_id || ""
+                    ) !== String(devotee.id)
+            );
+
+        if (hasMismatchedOffering) {
+
+            showMessage(
+                "One or more offerings belong to a different devotee. Please remove them before saving the receipt.",
                 "error"
             );
 
@@ -708,6 +791,7 @@ export default function NewReceipt() {
                 {/* OFFERINGS */}
 
                 <ReceiptGrid
+    key={devotee.id || "empty"}
     devotee={devotee}
     onItemsChange={
         setItems
@@ -842,6 +926,62 @@ export default function NewReceipt() {
                     handleDevoteeSelect
                 }
             />
+
+
+            {/* DEVOTEE CHANGE CONFIRMATION */}
+
+            <Dialog
+                open={confirmDevoteeChangeOpen}
+                onClose={cancelDevoteeChange}
+                fullWidth
+                maxWidth="sm"
+            >
+
+                <DialogTitle>
+                    Change Devotee?
+                </DialogTitle>
+
+                <DialogContent>
+                    <Typography
+                        sx={{ mt: 1 }}
+                    >
+                        There are already offerings entered for {devotee.full_name || "the current devotee"}.
+                    </Typography>
+
+                    <Typography
+                        sx={{ mt: 1 }}
+                    >
+                        Changing the devotee will clear all existing offerings. Do you want to continue?
+                    </Typography>
+
+                </DialogContent>
+
+                <DialogActions
+                    sx={{
+                        px: 3,
+                        pb: 2,
+                        gap: 1
+                    }}
+                >
+
+                    <Button
+                        onClick={cancelDevoteeChange}
+                        variant="outlined"
+                    >
+                        Cancel
+                    </Button>
+
+                    <Button
+                        onClick={confirmDevoteeChange}
+                        variant="contained"
+                        color="error"
+                    >
+                        Change Devotee
+                    </Button>
+
+                </DialogActions>
+
+            </Dialog>
 
 
             {/* MESSAGE */}
