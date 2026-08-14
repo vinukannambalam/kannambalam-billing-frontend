@@ -20,9 +20,12 @@ import SaveIcon from "@mui/icons-material/Save";
 import DevoteeSearchDialog from "../../components/billing/DevoteeSearchDialog";
 import ReceiptGrid from "../../components/billing/ReceiptGrid";
 import { apiFetch } from "../../api/api";
-import {printThermalReceipt} from "../../utils/thermalReceipt";
 import PrintIcon from "@mui/icons-material/Print";
-import {printWithRawBT} from "../../utils/thermalReceipt";
+import {
+    printThermalReceipt,
+    printWithRawBT,
+    printReceiptWithPushpanjali
+} from "../../utils/thermalReceipt";
 
 // ======================================================
 // NEW RECEIPT
@@ -317,6 +320,11 @@ export default function NewReceipt() {
                     item.beneficiary_name ||
                     "",
 
+                beneficiary_name_ml:
+                    item.beneficiary_name_ml ||
+                    item.malayalam_name ||
+                    "",
+
                 beneficiary_family_person_id:
                     item.beneficiary_family_person_id ||
                     null,
@@ -491,6 +499,9 @@ export default function NewReceipt() {
                         ""
                 },
                 items: items.map(item => ({
+                    offering_id:
+                        Number(item.offering_id),
+
                     offering_name:
                         item.offering_name ||
                         "",
@@ -516,6 +527,10 @@ export default function NewReceipt() {
                     beneficiary_name:
                         item.beneficiary_name ||
                         "",
+                    beneficiary_name_ml:
+                        item.beneficiary_name_ml ||
+                        item.malayalam_name ||
+                        "",
                     beneficiary_relationship:
                         item.beneficiary_relationship ||
                         "",
@@ -538,7 +553,10 @@ export default function NewReceipt() {
                     remarks.trim() ||
                     ""
             };
-
+            console.log(
+    "PRINT DATA ITEMS:",
+    receiptForPrinting.items
+);
             setPrintData(
                 receiptForPrinting
             );
@@ -581,7 +599,9 @@ export default function NewReceipt() {
 // Android -> RawBT -> Bluetooth thermal printer
 // Desktop -> normal Chrome printing
 setTimeout(() => {
-    printWithRawBT(receiptForPrinting);
+    printReceiptWithPushpanjali(
+        receiptForPrinting
+    );
 }, 300);
 
         }

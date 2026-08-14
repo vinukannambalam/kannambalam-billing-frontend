@@ -48,6 +48,9 @@ export default function ReceiptGrid({
     const [beneficiaryName, setBeneficiaryName] =
         useState("");
 
+    const [beneficiaryNameMl, setBeneficiaryNameMl] =
+        useState("");
+
     const [beneficiaryRelationship, setBeneficiaryRelationship] =
         useState("Self");
 
@@ -118,6 +121,7 @@ export default function ReceiptGrid({
         setOfferingId("");
         setSelectedFamilyPersonId("");
         setBeneficiaryName("");
+        setBeneficiaryNameMl("");
         setBeneficiaryRelationship("Self");
         setNakshathra("");
         setQty(1);
@@ -220,6 +224,10 @@ export default function ReceiptGrid({
                     self.name || devotee.full_name || ""
                 );
 
+                setBeneficiaryNameMl(
+                    self.malayalam_name || ""
+                );
+
                 setBeneficiaryRelationship(
                     "Self"
                 );
@@ -240,6 +248,8 @@ export default function ReceiptGrid({
                 setBeneficiaryName(
                     devotee.full_name || ""
                 );
+
+                setBeneficiaryNameMl("");
 
                 setBeneficiaryRelationship(
                     "Self"
@@ -270,6 +280,8 @@ export default function ReceiptGrid({
             setBeneficiaryName(
                 devotee?.full_name || ""
             );
+
+            setBeneficiaryNameMl("");
 
             setBeneficiaryRelationship(
                 "Self"
@@ -316,6 +328,7 @@ export default function ReceiptGrid({
             );
 
             setBeneficiaryName("");
+            setBeneficiaryNameMl("");
 
             setOtherPersonName("");
 
@@ -356,6 +369,10 @@ export default function ReceiptGrid({
             selected.name || ""
         );
 
+        setBeneficiaryNameMl(
+            selected.malayalam_name || ""
+        );
+
         setBeneficiaryRelationship(
             selected.relationship || "Family"
         );
@@ -387,6 +404,7 @@ export default function ReceiptGrid({
         setOtherPersonName(value);
 
         setBeneficiaryName(value);
+        setBeneficiaryNameMl("");
 
     };
 
@@ -708,6 +726,9 @@ export default function ReceiptGrid({
 
             beneficiary_name:
                 beneficiaryName.trim(),
+
+            beneficiary_name_ml:
+                beneficiaryNameMl.trim(),
 
             // Keep the ORIGINAL devotee ID here.
             // This preserves the current backend meaning.

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+
 import {
     Box,
     Paper,
@@ -15,18 +16,33 @@ import {
     CircularProgress,
     Alert
 } from "@mui/material";
+
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import PrintIcon from "@mui/icons-material/Print";
+
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+
 import { apiFetch } from "../../api/api";
-import { printWithRawBT } from "../../utils/thermalReceipt";
+
+import {
+    printReceiptWithPushpanjali
+} from "../../utils/thermalReceipt";
+
+
 export default function ReceiptView() {
+
     const { id } = useParams();
+
     const navigate = useNavigate();
+
     const [searchParams] = useSearchParams();
+
     const printRef = useRef();
+
     const autoPrintTriggered = useRef(false);
+
     const [printedAt, setPrintedAt] = useState(null);
+
 
     // ==================================================
     // STATE
@@ -55,24 +71,38 @@ export default function ReceiptView() {
 
     }, [id]);
 
+    // ==================================================
+    // AUTO PRINT FROM RECEIPT LIST
+    // ReceiptSearch opens this page with ?print=1.
+    // Use the SAME thermal function as the Print button.
+    // ==================================================
+
     useEffect(() => {
 
-    if (
-        searchParams.get("print") !== "1" ||
-        !receipt ||
-        loading ||
-        autoPrintTriggered.current
-    ) {
-        return;
-    }
+        if (
+            searchParams.get("print") !== "1" ||
+            !receipt ||
+            loading ||
+            autoPrintTriggered.current
+        ) {
+            return;
+        }
 
-    autoPrintTriggered.current = true;
+        autoPrintTriggered.current = true;
 
-    setTimeout(() => {
-        handlePrint();
-    }, 500);
+        setPrintedAt(
+            new Date().toISOString()
+        );
 
-}, [receipt, loading, searchParams]);
+        setTimeout(() => {
+            handlePrint();
+        }, 300);
+
+    }, [
+        receipt,
+        loading,
+        searchParams
+    ]);
 
 
     const loadReceipt = async () => {
@@ -191,89 +221,143 @@ export default function ReceiptView() {
 
     const handlePrint = () => {
 
-    if (!receipt) {
-        return;
-    }
+        if (!receipt) {
+            return;
+        }
 
-    const receiptForPrinting = {
-        receipt_no:
-            receipt.receipt_no || "",
+        const printItems =
+            items.map(
+                (item) => {
 
-        receipt_date:
-    receipt.receipt_date
-        ? new Date(receipt.receipt_date)
-            .toLocaleDateString("en-GB")
-            .replace(/\//g, "-")
-        : "",
+                    // Saved receipt data keeps beneficiary
+                    // and Nakshathra values inside item_details.
+                    let details =
+                        item.item_details || {};
 
-        created_by_name:
-            receipt.created_by_name || "-",
+                    if (
+                        typeof details === "string"
+                    ) {
+                        try {
+                            details =
+                                JSON.parse(details);
+                        }
+                        catch {
+                            details = {};
+                        }
+                    }
 
-        created_at:
-            receipt.created_at || null,
+                    return {
 
-        printed_at:
-            new Date().toISOString(),
+                        // Actual receipt_items offering ID.
+                        // Pushpanjali = 2.
+                        offering_id:
+                            Number(
+                                item.offering_id || 0
+                            ),
 
-        devotee: {
-    full_name:
-        receipt.devotee ||
-        receipt.devotee_name ||
-        "",
+                        offering_name:
+                            item.offering_name || "",
 
-    phone:
-        receipt.phone || ""
-},
+                        offering_name_ml:
+                            item.offering_name_ml || "",
 
-        items: items.map(item => {
+                        qty:
+                            Number(
+                                item.quantity ||
+                                item.qty ||
+                                1
+                            ),
 
-    const details =
-        item.item_details || {};
+                        amount:
+                            Number(
+                                item.amount || 0
+                            ),
 
-    return {
-        offering_name:
-            item.offering_name || "",
+                        beneficiary_name:
+                            details.beneficiary_name ||
+                            item.beneficiary_name ||
+                            "",
 
-        qty:
-            Number(
-                item.quantity ||
-                item.qty ||
-                1
-            ),
+                        beneficiary_name_ml:
+                            details.beneficiary_name_ml ||
+                            details.malayalam_name ||
+                            item.beneficiary_name_ml ||
+                            item.malayalam_name ||
+                            "",
 
-        amount:
-            Number(item.amount || 0),
+                        nakshathra_en:
+                            details.nakshathra_en ||
+                            item.nakshathra_en ||
+                            "",
 
-        beneficiary_name:
-            item.beneficiary_name ||
-            details.beneficiary_name ||
-            "",
+                        nakshathra_ml:
+                            details.nakshathra_ml ||
+                            item.nakshathra_ml ||
+                            ""
+                    };
+                }
+            );
 
-        nakshathra_en:
-            item.nakshathra_en ||
-            details.nakshathra_en ||
-            "",
+        const receiptForPrinting = {
 
-        nakshathra_ml:
-            item.nakshathra_ml ||
-            details.nakshathra_ml ||
-            ""
+            receipt_no:
+                receipt.receipt_no || "",
+
+            receipt_date:
+                receipt.receipt_date
+                    ? new Date(
+                        receipt.receipt_date
+                    ).toLocaleDateString(
+                        "en-IN"
+                    )
+                    : "",
+
+            created_by_name:
+                receipt.created_by_name || "-",
+
+            created_at:
+                receipt.created_at || null,
+
+            printed_at:
+                new Date().toISOString(),
+
+            devotee: {
+
+                full_name:
+                    receipt.devotee_name ||
+                    receipt.devotee ||
+                    "",
+
+                phone:
+                    receipt.phone || ""
+            },
+
+            items:
+                printItems,
+
+            total_amount:
+                Number(
+                    receipt.total_amount ||
+                    total ||
+                    0
+                ),
+
+            payment_mode:
+                receipt.payment_mode || "",
+
+            payment_mode_ml:
+                receipt.mode_name_ml || ""
+        };
+
+        // Same thermal printer path for:
+        // Receipt View -> Print
+        // Receipt List -> Print
+        //
+        // If Pushpanjali exists, it is included automatically.
+        printReceiptWithPushpanjali(
+            receiptForPrinting
+        );
     };
-}),
-
-        total_amount:
-            Number(
-                receipt.total_amount ||
-                total ||
-                0
-            ),
-
-        payment_mode:
-            receipt.payment_mode || ""
-    };
-
-    printWithRawBT(receiptForPrinting);
-};
 
 
     // ==================================================
