@@ -225,77 +225,26 @@ export default function ReceiptView() {
             return;
         }
 
-        const printItems =
-            items.map(
-                (item) => {
+        /*
+         * ANDROID PHONE:
+         * Keep the existing RawBT path.  This path uses the
+         * canvas/image implementation in thermalReceipt.js,
+         * including the Malayalam Pushpanjali list.
+         *
+         * TABLET / LAPTOP / DESKTOP / iOS:
+         * Use the browser print dialog.  The dedicated thermal
+         * print area below contains the same Pushpanjali list.
+         */
+        const userAgent = navigator.userAgent || "";
 
-                    // Saved receipt data keeps beneficiary
-                    // and Nakshathra values inside item_details.
-                    let details =
-                        item.item_details || {};
-
-                    if (
-                        typeof details === "string"
-                    ) {
-                        try {
-                            details =
-                                JSON.parse(details);
-                        }
-                        catch {
-                            details = {};
-                        }
-                    }
-
-                    return {
-
-                        // Actual receipt_items offering ID.
-                        // Pushpanjali = 2.
-                        offering_id:
-                            Number(
-                                item.offering_id || 0
-                            ),
-
-                        offering_name:
-                            item.offering_name || "",
-
-                        offering_name_ml:
-                            item.offering_name_ml || "",
-
-                        qty:
-                            Number(
-                                item.quantity ||
-                                item.qty ||
-                                1
-                            ),
-
-                        amount:
-                            Number(
-                                item.amount || 0
-                            ),
-
-                        beneficiary_name:
-                            details.beneficiary_name ||
-                            item.beneficiary_name ||
-                            "",
-
-                        beneficiary_name_ml:
-                            details.beneficiary_name_ml ||
-                            details.malayalam_name ||
-                            item.beneficiary_name_ml ||
-                            item.malayalam_name ||
-                            "",
-
-                        nakshathra_en:
-                            details.nakshathra_en ||
-                            item.nakshathra_en ||
-                            "",
-
-                        nakshathra_ml:
-                            details.nakshathra_ml ||
-                            item.nakshathra_ml ||
-                            ""
-                    };
-                }
+        const isAndroidPhone =
+            /Android/i.test(userAgent) &&
+            (
+                /Mobile/i.test(userAgent) ||
+                (
+                    window.innerWidth <= 600 &&
+                    navigator.maxTouchPoints > 0
+                )
             );
 
         const receiptForPrinting = {
@@ -349,16 +298,36 @@ export default function ReceiptView() {
                 receipt.mode_name_ml || ""
         };
 
-        // Same thermal printer path for:
-        // Receipt View -> Print
-        // Receipt List -> Print
-        //
-        // If Pushpanjali exists, it is included automatically.
-        printReceiptWithPushpanjali(
-            receiptForPrinting
-        );
-    };
+        if (isAndroidPhone) {
 
+            /*
+             * IMPORTANT:
+             * Do not replace this with window.print().
+             * printReceiptWithPushpanjali() builds the Malayalam
+             * Pushpanjali section as an image and sends the complete
+             * receipt + Pushpanjali slip to RawBT.
+             */
+            printReceiptWithPushpanjali(
+                receiptForPrinting
+            );
+
+            return;
+        }
+
+        /*
+         * Browser printing for laptop / desktop / tablet / iOS.
+         * The print-only receipt area includes the Pushpanjali list,
+         * so it is printed at the end of the receipt.
+         */
+        const printTime =
+            new Date().toISOString();
+
+        setPrintedAt(printTime);
+
+        setTimeout(() => {
+            window.print();
+        }, 150);
+    };
 
     // ==================================================
     // LOADING
@@ -445,6 +414,80 @@ export default function ReceiptView() {
 
         );
 
+    // Normalize receipt items once at render scope.
+    // This is used by BOTH the browser print area and
+    // the Android RawBT print path.
+    const printItems =
+        items.map(
+            (item) => {
+
+                let details =
+                    item.item_details || {};
+
+                if (
+                    typeof details === "string"
+                ) {
+                    try {
+                        details =
+                            JSON.parse(details);
+                    }
+                    catch {
+                        details = {};
+                    }
+                }
+
+                return {
+
+                    ...item,
+
+                    offering_id:
+                        Number(
+                            item.offering_id || 0
+                        ),
+
+                    offering_name:
+                        item.offering_name || "",
+
+                    offering_name_ml:
+                        item.offering_name_ml || "",
+
+                    qty:
+                        Number(
+                            item.quantity ||
+                            item.qty ||
+                            1
+                        ),
+
+                    amount:
+                        Number(
+                            item.amount || 0
+                        ),
+
+                    beneficiary_name:
+                        details.beneficiary_name ||
+                        item.beneficiary_name ||
+                        "",
+
+                    beneficiary_name_ml:
+                        details.beneficiary_name_ml ||
+                        details.malayalam_name ||
+                        item.beneficiary_name_ml ||
+                        item.malayalam_name ||
+                        "",
+
+                    nakshathra_en:
+                        details.nakshathra_en ||
+                        item.nakshathra_en ||
+                        "",
+
+                    nakshathra_ml:
+                        details.nakshathra_ml ||
+                        item.nakshathra_ml ||
+                        ""
+                };
+            }
+        );
+
 
     // ==================================================
     // DATE
@@ -489,19 +532,48 @@ export default function ReceiptView() {
                 left: 0 !important;
                 top: 0 !important;
                 width: 58mm !important;
-                padding: 3mm !important;
+                padding: 2mm 2mm !important;
                 box-sizing: border-box !important;
-                font-family: monospace !important;
-                font-size: 10px !important;
-                line-height: 1.25 !important;
+                font-family: Arial, "Segoe UI", sans-serif !important;
+                font-size: 13px !important;
+                line-height: 1.35 !important;
+                font-weight: 600 !important;
+                letter-spacing: 0 !important;
                 color: #000 !important;
                 background: #fff !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
-            .receipt-thermal-center { text-align: center !important; }
+            .receipt-thermal-center {
+                text-align: center !important;
+                font-weight: 700 !important;
+            }
             .receipt-thermal-line { border-top: 1px dashed #000 !important; margin: 4px 0 !important; }
             .receipt-thermal-row { display: flex !important; justify-content: space-between !important; gap: 2mm !important; }
             .receipt-thermal-total { font-weight: 700 !important; }
-            .receipt-thermal-item { margin-bottom: 5px !important; }
+            .receipt-thermal-item {
+                margin-bottom: 5px !important;
+                font-weight: 600 !important;
+            }
+            .receipt-pushpanjali-section { margin-top: 14mm !important; }
+            .receipt-pushpanjali-title {
+                text-align: center !important;
+                font-family: "Noto Sans Malayalam", "Noto Sans", sans-serif !important;
+                font-size: 17px !important;
+                font-weight: 700 !important;
+                margin-bottom: 4px !important;
+            }
+            .receipt-pushpanjali-item {
+                font-family: "Noto Sans Malayalam", "Noto Sans", sans-serif !important;
+                font-size: 12px !important;
+                line-height: 1.35 !important;
+                margin-bottom: 5px !important;
+                word-break: break-word !important;
+            }
+            .receipt-pushpanjali-separator {
+                border-top: 1px dashed #000 !important;
+                margin: 4px 0 8px !important;
+            }
         }
     `;
 
@@ -1093,44 +1165,250 @@ export default function ReceiptView() {
                     Kannambalath Shree Bhadrakali<br />
                     Shankarammavan Kshethram
                 </div>
-                <div className="receipt-thermal-line" />
-                <div>Receipt: {receipt.receipt_no}</div>
-                <div>Date: {formattedDate}</div>
-                <div>Devotee: {receipt.devotee || receipt.devotee_name || "-"}</div>
-                {receipt.phone && <div>Phone: {receipt.phone}</div>}
+
                 <div className="receipt-thermal-line" />
 
-                {items.map((item, index) => {
-                    const details = item.item_details || {};
-                    return (
-                        <div className="receipt-thermal-item" key={item.id || index}>
-                            <div>{item.offering_name || ""}</div>
-                            <div className="receipt-thermal-row">
-                                <span>Qty {item.quantity || 1}</span>
-                                <span>₹{Number(item.amount || 0).toFixed(2)}</span>
+                <div>
+                    Receipt: {receipt.receipt_no}
+                </div>
+
+                <div>
+                    Date: {formattedDate}
+                </div>
+
+                <div>
+                    Devotee: {
+                        receipt.devotee_name ||
+                        receipt.devotee ||
+                        "-"
+                    }
+                </div>
+
+                {receipt.phone && (
+                    <div>
+                        Phone: {receipt.phone}
+                    </div>
+                )}
+
+                <div className="receipt-thermal-line" />
+
+                {printItems.map(
+                    (item, index) => (
+                        <div
+                            className="receipt-thermal-item"
+                            key={
+                                item.id ||
+                                index
+                            }
+                        >
+                            <div>
+                                {
+                                    item.offering_name ||
+                                    ""
+                                }
                             </div>
-                            {details.beneficiary_name && (
-                                <div>For: {details.beneficiary_name}</div>
+
+                            <div className="receipt-thermal-row">
+                                <span>
+                                    Qty {item.qty || 1}
+                                </span>
+
+                                <span>
+                                    ₹
+                                    {Number(
+                                        item.amount || 0
+                                    ).toFixed(2)}
+                                </span>
+                            </div>
+
+                            {item.beneficiary_name && (
+                                <div>
+                                    For: {
+                                        item.beneficiary_name
+                                    }
+                                </div>
                             )}
-                            {(details.nakshathra_en || details.nakshathra_ml) && (
-                                <div>Star: {details.nakshathra_en || details.nakshathra_ml}</div>
+
+                            {(
+                                item.nakshathra_en ||
+                                item.nakshathra_ml
+                            ) && (
+                                <div>
+                                    Star: {
+                                        item.nakshathra_en ||
+                                        item.nakshathra_ml
+                                    }
+                                </div>
                             )}
                         </div>
-                    );
-                })}
+                    )
+                )}
 
                 <div className="receipt-thermal-line" />
+
                 <div className="receipt-thermal-row receipt-thermal-total">
-                    <span>TOTAL</span>
-                    <span>₹{Number(receipt.total_amount || total || 0).toFixed(2)}</span>
+                    <span>
+                        TOTAL
+                    </span>
+
+                    <span>
+                        ₹
+                        {Number(
+                            receipt.total_amount ||
+                            total ||
+                            0
+                        ).toFixed(2)}
+                    </span>
                 </div>
-                {receipt.payment_mode && <div>Payment: {receipt.payment_mode}</div>}
+
+                {receipt.payment_mode && (
+                    <div>
+                        Payment: {receipt.payment_mode}
+                    </div>
+                )}
+
                 <div className="receipt-thermal-line" />
-                <div>Created By: {receipt.created_by_name || "-"}</div>
-                <div>Created: {formatPrintDateTime(receipt.created_at)}</div>
-                <div>Printed: {formatPrintDateTime(printedAt)}</div>
+
+                <div>
+                    Created By: {
+                        receipt.created_by_name ||
+                        "-"
+                    }
+                </div>
+
+                <div>
+                    Created: {
+                        formatPrintDateTime(
+                            receipt.created_at
+                        )
+                    }
+                </div>
+
+                <div>
+                    Printed: {
+                        formatPrintDateTime(
+                            printedAt
+                        )
+                    }
+                </div>
+
                 <div className="receipt-thermal-line" />
-                <div className="receipt-thermal-center">Thank You</div>
+
+                <div className="receipt-thermal-center">
+                    Thank You
+                </div>
+
+
+                {/* ==========================================
+                    PUSHPANJALI
+                    Uses the SAME normalized printItems that
+                    are sent to the Android thermal printer.
+                    This prevents browser and mobile printing
+                    from using different data sources.
+                ========================================== */}
+
+                {printItems.some(
+                    (item) =>
+                        Number(
+                            item.offering_id || 0
+                        ) === 2 &&
+                        (
+                            item.beneficiary_name_ml ||
+                            item.beneficiary_name ||
+                            item.malayalam_name
+                        )
+                ) && (
+
+                    <div
+                        className="receipt-pushpanjali-section"
+                    >
+
+                        <div
+                            className="receipt-pushpanjali-title"
+                        >
+                            പുഷ്പാഞ്ജലി
+                        </div>
+
+                        <div
+                            className="receipt-pushpanjali-separator"
+                        />
+
+                        {printItems
+                            .filter(
+                                (item) =>
+                                    Number(
+                                        item.offering_id || 0
+                                    ) === 2 &&
+                                    (
+                                        item.beneficiary_name_ml ||
+                                        item.beneficiary_name ||
+                                        item.malayalam_name
+                                    )
+                            )
+                            .map(
+                                (
+                                    item,
+                                    index
+                                ) => {
+
+                                    const name =
+                                        item.beneficiary_name_ml ||
+                                        item.malayalam_name ||
+                                        item.beneficiary_name ||
+                                        "";
+
+                                    const star =
+                                        item.nakshathra_ml ||
+                                        item.nakshathra_en ||
+                                        "";
+
+                                    return (
+
+                                        <div
+                                            className="receipt-pushpanjali-item"
+                                            key={
+                                                `pushpanjali-${
+                                                    item.id ||
+                                                    index
+                                                }`
+                                            }
+                                        >
+                                            <span>
+                                                {
+                                                    index + 1
+                                                }.
+                                            </span>
+
+                                            {" "}
+
+                                            <span>
+                                                {name}
+                                            </span>
+
+                                            {star && (
+                                                <>
+                                                    {" - "}
+                                                    <span>
+                                                        {star}
+                                                    </span>
+                                                </>
+                                            )}
+
+                                        </div>
+
+                                    );
+
+                                }
+                            )}
+
+                        <div
+                            className="receipt-pushpanjali-separator"
+                        />
+
+                    </div>
+
+                )}
+
             </Box>
 
         </Box>

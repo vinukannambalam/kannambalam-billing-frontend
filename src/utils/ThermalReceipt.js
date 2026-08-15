@@ -477,7 +477,14 @@ export function printRawBTTest() {
 
 
 // ============================================================
-// CANVAS HELPERS FOR MALAYALAM PRINTING
+// PUSHPANJALI IMAGE + ESC/POS RASTER HELPERS
+//
+// IMPORTANT:
+// The normal receipt remains native ESC/POS text.
+// ONLY the Malayalam Pushpanjali section is rasterized.
+//
+// This avoids converting the whole receipt to a PNG, which was
+// causing the complete receipt text to print smaller/softer.
 // ============================================================
 
 const wrapCanvasText = (
@@ -518,9 +525,11 @@ const wrapCanvasText = (
         else {
 
             if (current) {
+
                 result.push(
                     current
                 );
+
             }
 
             current = word;
@@ -528,9 +537,11 @@ const wrapCanvasText = (
     }
 
     if (current) {
+
         result.push(
             current
         );
+
     }
 
     return result;
@@ -538,21 +549,47 @@ const wrapCanvasText = (
 
 
 // ============================================================
-// CREATE COMBINED RECEIPT + PUSHPANJALI IMAGE
-//
-// The entire print is converted into an image.
-// This allows Malayalam text to print correctly through RawBT.
+// WAIT FOR MALAYALAM FONT
 // ============================================================
 
-const buildReceiptAndPushpanjaliImage = (
-    receipt,
+const waitForMalayalamFont = async () => {
+
+    try {
+
+        if (
+            document.fonts &&
+            document.fonts.load
+        ) {
+
+            await document.fonts.load(
+                "28px 'Noto Sans Malayalam'"
+            );
+
+        }
+
+    }
+    catch {
+
+        // Browser fallback font will be used.
+    }
+
+};
+
+
+// ============================================================
+// BUILD ONLY THE PUSHPANJALI IMAGE
+//
+// The final image is exactly printer width (384 pixels).
+// The rest of the receipt is NOT rasterized.
+// ============================================================
+
+const buildPushpanjaliCanvas = (
     pushpanjaliItems
 ) => {
 
     const width = 384;
 
-    const left =
-        8;
+    const left = 8;
 
     const right =
         width - 8;
@@ -560,40 +597,36 @@ const buildReceiptAndPushpanjaliImage = (
     const contentWidth =
         right - left;
 
-    // --------------------------------------------------------
-    // First calculate required height
-    // --------------------------------------------------------
+    const measureCanvas =
+        document.createElement(
+            "canvas"
+        );
 
-    let height = 20;
+    const measureCtx =
+        measureCanvas.getContext(
+            "2d"
+        );
 
-    const normalLines =
-        buildThermalReceiptText(
-            receipt
-        ).split("\n");
+    if (!measureCtx) {
 
-    // Approximate normal receipt height
-    height +=
-        normalLines.length *
-        29;
+        return null;
 
-    // Pushpanjali section
-    //
-    // Keep the height calculation in sync with the actual
-    // drawing below. This is important because the Pushpanjali
-    // slip now has a 4-line gap before it and 3-line feed
-    // after the bottom separator.
-    height +=
-        (4 * 36) +     // blank gap before Pushpanjali
-        42 +            // heading
-        36;             // separator line + spacing
+    }
 
-    // Use the same font as the final Pushpanjali text when
-    // measuring wrapped Malayalam lines.
-    pushpanjaliMeasureContext.font =
-        "25px 'Noto Sans Malayalam', 'Noto Sans', sans-serif";
+    measureCtx.font =
+        "28px 'Noto Sans Malayalam', sans-serif";
 
+    let height = 24;
+
+    // Heading
+    height += 42;
+
+    // Separator
+    height += 34;
+
+    // Names
     pushpanjaliItems.forEach(
-        (item, index) => {
+        (item) => {
 
             const name =
                 String(
@@ -611,42 +644,43 @@ const buildReceiptAndPushpanjaliImage = (
                 ).trim();
 
             const text =
-                `${index + 1}. ${name} - ${star}`;
+                star
+                    ? `${name} - ${star}`
+                    : name;
 
-            const measuredLines =
+            const lines =
                 wrapCanvasText(
-                    pushpanjaliMeasureContext,
+                    measureCtx,
                     text,
-                    contentWidth
+                    contentWidth - 8
                 );
 
             height +=
                 Math.max(
                     1,
-                    measuredLines.length
-                ) * 36;
+                    lines.length
+                ) * 40;
+
+            // Small gap between persons
+            height += 6;
+
         }
     );
 
-    height +=
-        (3 * 36) +     // blank feed after separator
-        20;             // bottom safety margin
+    // Bottom separator + feed
+    height += 34;
+
+    height += 60;
 
     const canvas =
         document.createElement(
             "canvas"
         );
 
-    canvas.width =
-        width;
+    canvas.width = width;
 
-    // Use a large temporary canvas while drawing.
-    // The final canvas is cropped to the exact rendered height
-    // after ALL receipt and Pushpanjali content has been drawn.
-    // This prevents any Pushpanjali entries from being cut off,
-    // regardless of how many persons are in the receipt.
     canvas.height =
-        20000;
+        Math.ceil(height);
 
     const ctx =
         canvas.getContext(
@@ -654,12 +688,10 @@ const buildReceiptAndPushpanjaliImage = (
         );
 
     if (!ctx) {
-        return null;
-    }
 
-    // --------------------------------------------------------
-    // White paper
-    // --------------------------------------------------------
+        return null;
+
+    }
 
     ctx.fillStyle =
         "#ffffff";
@@ -667,8 +699,8 @@ const buildReceiptAndPushpanjaliImage = (
     ctx.fillRect(
         0,
         0,
-        width,
-        height
+        canvas.width,
+        canvas.height
     );
 
     ctx.fillStyle =
@@ -677,414 +709,17 @@ const buildReceiptAndPushpanjaliImage = (
     ctx.textBaseline =
         "top";
 
-    let y = 15;
+    let y = 12;
 
     // --------------------------------------------------------
-    // Temple heading
+    // Pushpanjali heading
     // --------------------------------------------------------
-
-    ctx.font =
-        "bold 21px monospace";
-
-    ctx.textAlign =
-        "center";
-
-    ctx.fillText(
-        "Kannambalath Shree Bhadrakali",
-        width / 2,
-        y
-    );
-
-    y += 27;
-
-    ctx.fillText(
-        "Shankarammavan Kshethram",
-        width / 2,
-        y
-    );
-
-    y += 36;
-
-    // --------------------------------------------------------
-    // Separator
-    // --------------------------------------------------------
-
-    ctx.font =
-        "19px monospace";
-
-    ctx.textAlign =
-        "left";
-
-    ctx.fillText(
-        "--------------------------------",
-        left,
-        y
-    );
-
-    y += 32;
-
-    // --------------------------------------------------------
-    // Receipt details
-    // --------------------------------------------------------
-
-    ctx.font =
-        "20px monospace";
-
-    const receiptDetails = [
-
-        `Receipt: ${
-            receipt.receipt_no || ""
-        }`,
-
-        `Date: ${
-            receipt.receipt_date || ""
-        }`,
-
-        `Devotee: ${
-            receipt.devotee?.full_name || ""
-        }`
-
-    ];
-
-    if (
-        receipt.devotee?.phone
-    ) {
-
-        receiptDetails.push(
-            `Phone: ${
-                receipt.devotee.phone
-            }`
-        );
-
-    }
-
-    for (
-        const detail of receiptDetails
-    ) {
-
-        const wrapped =
-            wrapCanvasText(
-                ctx,
-                detail,
-                contentWidth
-            );
-
-        for (
-            const wrappedLine of wrapped
-        ) {
-
-            ctx.fillText(
-                wrappedLine,
-                left,
-                y
-            );
-
-            y += 27;
-        }
-
-    }
-
-    // --------------------------------------------------------
-    // Separator
-    // --------------------------------------------------------
-
-    ctx.font =
-        "19px monospace";
-
-    ctx.fillText(
-        "--------------------------------",
-        left,
-        y
-    );
-
-    y += 32;
-
-    // --------------------------------------------------------
-    // Offerings
-    // --------------------------------------------------------
-
-    const items =
-        receipt.items || [];
-
-    ctx.font =
-        "20px monospace";
-
-    for (
-        let i = 0;
-        i < items.length;
-        i++
-    ) {
-
-        const item =
-            items[i];
-
-        const offeringName =
-            String(
-                item.offering_name || ""
-            );
-
-        const offeringLines =
-            wrapCanvasText(
-                ctx,
-                offeringName,
-                contentWidth
-            );
-
-        for (
-            const offeringLine of offeringLines
-        ) {
-
-            ctx.fillText(
-                offeringLine,
-                left,
-                y
-            );
-
-            y += 27;
-        }
-
-        const qtyAmount =
-            twoColumn(
-                `Qty ${
-                    item.qty || 1
-                }`,
-                `Rs. ${
-                    Number(
-                        item.amount || 0
-                    ).toFixed(2)
-                }`
-            );
-
-        ctx.fillText(
-            qtyAmount,
-            left,
-            y
-        );
-
-        y += 27;
-
-        if (
-            item.beneficiary_name
-        ) {
-
-            const forLines =
-                wrapCanvasText(
-                    ctx,
-                    `For: ${
-                        item.beneficiary_name
-                    }`,
-                    contentWidth
-                );
-
-            for (
-                const forLine of forLines
-            ) {
-
-                ctx.fillText(
-                    forLine,
-                    left,
-                    y
-                );
-
-                y += 27;
-            }
-
-        }
-
-        if (
-            item.nakshathra_en
-        ) {
-
-            const starLines =
-                wrapCanvasText(
-                    ctx,
-                    `Star: ${
-                        item.nakshathra_en
-                    }`,
-                    contentWidth
-                );
-
-            for (
-                const starLine of starLines
-            ) {
-
-                ctx.fillText(
-                    starLine,
-                    left,
-                    y
-                );
-
-                y += 27;
-            }
-
-        }
-
-        // Separator only
-        // between offerings
-        if (
-            i <
-            items.length - 1
-        ) {
-
-            ctx.fillText(
-                "--------------------------------",
-                left,
-                y
-            );
-
-            y += 32;
-        }
-    }
-
-    // --------------------------------------------------------
-    // Total separator
-    // --------------------------------------------------------
-
-    ctx.fillText(
-        "--------------------------------",
-        left,
-        y
-    );
-
-    y += 32;
-
-    // --------------------------------------------------------
-    // Total
-    // --------------------------------------------------------
-
-    ctx.font =
-        "bold 20px monospace";
-
-    ctx.fillText(
-        twoColumn(
-            "TOTAL",
-            `Rs. ${
-                Number(
-                    receipt.total_amount || 0
-                ).toFixed(2)
-            }`
-        ),
-        left,
-        y
-    );
-
-    y += 29;
-
-    ctx.font =
-        "20px monospace";
-
-    if (
-        receipt.payment_mode
-    ) {
-
-        ctx.fillText(
-            `Payment: ${
-                receipt.payment_mode
-            }`,
-            left,
-            y
-        );
-
-        y += 29;
-    }
-
-    // --------------------------------------------------------
-    // Created information
-    // --------------------------------------------------------
-
-    ctx.fillText(
-        "--------------------------------",
-        left,
-        y
-    );
-
-    y += 32;
-
-    const createdLines = [
-
-        `Created By: ${
-            receipt.created_by_name || "-"
-        }`,
-
-        `Created: ${
-            formatDateTime(
-                receipt.created_at
-            )
-        }`,
-
-        `Printed: ${
-            formatDateTime(
-                receipt.printed_at
-            )
-        }`
-
-    ];
-
-    for (
-        const detail of createdLines
-    ) {
-
-        const wrapped =
-            wrapCanvasText(
-                ctx,
-                detail,
-                contentWidth
-            );
-
-        for (
-            const wrappedLine of wrapped
-        ) {
-
-            ctx.fillText(
-                wrappedLine,
-                left,
-                y
-            );
-
-            y += 27;
-        }
-    }
-
-    ctx.fillText(
-        "--------------------------------",
-        left,
-        y
-    );
-
-    y += 36;
-
-    // --------------------------------------------------------
-    // Thank You
-    // --------------------------------------------------------
-
-    ctx.font =
-        "bold 20px monospace";
-
-    ctx.textAlign =
-        "center";
-
-    ctx.fillText(
-        "Thank You",
-        width / 2,
-        y
-    );
-
-    y += 46;
-
-    // --------------------------------------------------------
-    // PUSHPANJALI SECTION
-    //
-    // Leave a clear blank gap before the Pushpanjali slip
-    // so it can be detached and handed to the priest.
-    // --------------------------------------------------------
-
-    y += 36 * 4;
 
     ctx.textAlign =
         "center";
 
     ctx.font =
-        "bold 30px 'Noto Sans Malayalam', 'Noto Sans', sans-serif";
+        "bold 30px 'Noto Sans Malayalam', sans-serif";
 
     ctx.fillText(
         "പുഷ്പാഞ്ജലി",
@@ -1094,11 +729,15 @@ const buildReceiptAndPushpanjaliImage = (
 
     y += 42;
 
-    ctx.font =
-        "19px monospace";
+    // --------------------------------------------------------
+    // Separator
+    // --------------------------------------------------------
 
     ctx.textAlign =
         "left";
+
+    ctx.font =
+        "19px monospace";
 
     ctx.fillText(
         "--------------------------------",
@@ -1106,14 +745,14 @@ const buildReceiptAndPushpanjaliImage = (
         y
     );
 
-    y += 36;
+    y += 34;
 
     // --------------------------------------------------------
-    // Pushpanjali names
+    // Beneficiary names
     // --------------------------------------------------------
 
     ctx.font =
-        "25px 'Noto Sans Malayalam', 'Noto Sans', sans-serif";
+        "28px 'Noto Sans Malayalam', sans-serif";
 
     pushpanjaliItems.forEach(
         (item, index) => {
@@ -1134,32 +773,38 @@ const buildReceiptAndPushpanjaliImage = (
                 ).trim();
 
             const text =
-                `${index + 1}. ${name} - ${star}`;
+                star
+                    ? `${index + 1}. ${name} - ${star}`
+                    : `${index + 1}. ${name}`;
 
-            const wrapped =
+            const lines =
                 wrapCanvasText(
                     ctx,
                     text,
-                    contentWidth
+                    contentWidth - 8
                 );
 
-            for (
-                const wrappedLine of wrapped
-            ) {
+            lines.forEach(
+                (wrappedLine) => {
 
-                ctx.fillText(
-                    wrappedLine,
-                    left,
-                    y
-                );
+                    ctx.fillText(
+                        wrappedLine,
+                        left,
+                        y
+                    );
 
-                y += 36;
-            }
+                    y += 40;
+
+                }
+            );
+
+            y += 6;
+
         }
     );
 
     // --------------------------------------------------------
-    // Pushpanjali bottom separator
+    // Bottom separator
     // --------------------------------------------------------
 
     ctx.font =
@@ -1171,90 +816,250 @@ const buildReceiptAndPushpanjaliImage = (
         y
     );
 
-    // Leave 2-3 blank lines after the separator
-    // so the Pushpanjali slip can be detached cleanly.
-    y += 36 * 3;
+    y += 60;
 
-    // --------------------------------------------------------
-    // Crop the temporary canvas to the EXACT content height.
-    //
-    // This is the important part: the final image height is
-    // based on the actual y position after every Pushpanjali
-    // person has been drawn. Therefore 1, 4, 10 or more persons
-    // are all included in the final PNG.
-    // --------------------------------------------------------
+    return canvas;
 
-    const finalHeight =
-        Math.ceil(y + 10);
+};
 
-    const finalCanvas =
-        document.createElement(
-            "canvas"
-        );
+// ============================================================
+// CONVERT CANVAS TO ESC/POS RASTER BYTES
+//
+// GS v 0 is the standard ESC/POS raster-image command.
+// The printer receives the Pushpanjali bitmap only.
+// ============================================================
 
-    finalCanvas.width =
-        width;
+const canvasToRasterBytes = (
+    canvas
+) => {
 
-    finalCanvas.height =
-        finalHeight;
+    const width =
+        canvas.width;
 
-    const finalCtx =
-        finalCanvas.getContext(
+    const height =
+        canvas.height;
+
+    const ctx =
+        canvas.getContext(
             "2d"
         );
 
-    if (!finalCtx) {
-        return canvas;
+    if (!ctx) {
+
+        return null;
+
     }
 
-    finalCtx.fillStyle =
-        "#ffffff";
+    const imageData =
+        ctx.getImageData(
+            0,
+            0,
+            width,
+            height
+        );
 
-    finalCtx.fillRect(
-        0,
-        0,
-        width,
-        finalHeight
-    );
+    const widthBytes =
+        Math.ceil(
+            width / 8
+        );
 
-    finalCtx.drawImage(
-        canvas,
-        0,
+    const header =
+        new Uint8Array([
+            0x1D,
+            0x76,
+            0x30,
+            0x00,
+            widthBytes & 0xFF,
+            (widthBytes >> 8) & 0xFF,
+            height & 0xFF,
+            (height >> 8) & 0xFF
+        ]);
+
+    const bitmap =
+        new Uint8Array(
+            widthBytes * height
+        );
+
+    for (
+        let y = 0;
+        y < height;
+        y++
+    ) {
+
+        for (
+            let x = 0;
+            x < width;
+            x++
+        ) {
+
+            const pixelIndex =
+                (
+                    y * width +
+                    x
+                ) * 4;
+
+            const r =
+                imageData.data[
+                    pixelIndex
+                ];
+
+            const g =
+                imageData.data[
+                    pixelIndex + 1
+                ];
+
+            const b =
+                imageData.data[
+                    pixelIndex + 2
+                ];
+
+            const alpha =
+                imageData.data[
+                    pixelIndex + 3
+                ];
+
+            // Treat transparent pixels as white.
+            const gray =
+                alpha === 0
+                    ? 255
+                    : (
+                        0.299 * r +
+                        0.587 * g +
+                        0.114 * b
+                    );
+
+            // Threshold rather than dithering.
+            // This keeps Malayalam strokes clean on a 203dpi
+            // thermal printer.
+            if (
+                gray < 190
+            ) {
+
+                const byteIndex =
+                    y * widthBytes +
+                    Math.floor(
+                        x / 8
+                    );
+
+                bitmap[
+                    byteIndex
+                ] |=
+                    0x80 >>
+                    (x % 8);
+
+            }
+
+        }
+
+    }
+
+    const result =
+        new Uint8Array(
+            header.length +
+            bitmap.length
+        );
+
+    result.set(
+        header,
         0
     );
 
-    return finalCanvas;
+    result.set(
+        bitmap,
+        header.length
+    );
+
+    return result;
+
 };
 
 
 // ============================================================
-// Temporary canvas context used only for measuring Malayalam
-// text before the final canvas is created.
+// RAWBT BYTE LAUNCHER
 // ============================================================
 
-const pushpanjaliMeasureCanvas =
-    document.createElement(
-        "canvas"
+const printRawBTBytes = (
+    bytes
+) => {
+
+    if (!bytes) {
+
+        return;
+
+    }
+
+    let binary = "";
+
+    const chunkSize = 0x8000;
+
+    for (
+        let i = 0;
+        i < bytes.length;
+        i += chunkSize
+    ) {
+
+        const chunk =
+            bytes.subarray(
+                i,
+                Math.min(
+                    i + chunkSize,
+                    bytes.length
+                )
+            );
+
+        binary +=
+            String.fromCharCode(
+                ...chunk
+            );
+
+    }
+
+    const base64 =
+        btoa(binary);
+
+    const rawbtUrl =
+        `rawbt:base64,${base64}`;
+
+    const link =
+        document.createElement(
+            "a"
+        );
+
+    link.href =
+        rawbtUrl;
+
+    link.textContent =
+        "Print Receipt";
+
+    link.style.display =
+        "none";
+
+    document.body.appendChild(
+        link
     );
 
-const pushpanjaliMeasureContext =
-    pushpanjaliMeasureCanvas.getContext(
-        "2d"
+    link.click();
+
+    document.body.removeChild(
+        link
     );
+
+};
 
 
 // ============================================================
 // PRINT RECEIPT + PUSHPANJALI
 //
-// NewReceipt.jsx already calls this function.
-// No additional print call is required.
+// OPTION B:
 //
-// Entire combined receipt is converted to PNG.
-// Therefore Malayalam is rendered by the browser first,
-// instead of being sent as raw Malayalam text to RawBT.
+//   Receipt text       -> native ESC/POS text
+//   Pushpanjali        -> ESC/POS raster image
+//
+// This preserves the sharp native receipt text while still
+// allowing Malayalam Pushpanjali names to print correctly.
 // ============================================================
 
-export const printReceiptWithPushpanjali = (
+export const printReceiptWithPushpanjali = async (
     receipt
 ) => {
 
@@ -1274,7 +1079,7 @@ export const printReceiptWithPushpanjali = (
     // --------------------------------------------------------
     // No Pushpanjali
     //
-    // Preserve the existing normal receipt printing behaviour.
+    // Preserve the existing native text printing exactly.
     // --------------------------------------------------------
 
     if (
@@ -1286,66 +1091,105 @@ export const printReceiptWithPushpanjali = (
         );
 
         return;
+
     }
 
-    // --------------------------------------------------------
-    // Build image
-    // --------------------------------------------------------
+    try {
 
-    const canvas =
-        buildReceiptAndPushpanjaliImage(
-            receipt,
-            pushpanjaliItems
+        // Ensure Malayalam font is available before rendering.
+        await waitForMalayalamFont();
+
+        // ----------------------------------------------------
+        // 1. Native receipt text
+        // ----------------------------------------------------
+
+        const receiptText =
+            buildThermalReceiptText(
+                receipt
+            );
+
+        const textBytes =
+            new TextEncoder().encode(
+                receiptText
+            );
+
+        // ----------------------------------------------------
+        // 2. Pushpanjali image only
+        // ----------------------------------------------------
+
+        const pushpanjaliCanvas =
+            buildPushpanjaliCanvas(
+                pushpanjaliItems
+            );
+
+        if (!pushpanjaliCanvas) {
+
+            printWithRawBT(
+                receipt
+            );
+
+            return;
+
+        }
+
+        const imageBytes =
+            canvasToRasterBytes(
+                pushpanjaliCanvas
+            );
+
+        if (!imageBytes) {
+
+            printWithRawBT(
+                receipt
+            );
+
+            return;
+
+        }
+
+        // ----------------------------------------------------
+        // 3. Combine native text + raster image
+        // ----------------------------------------------------
+
+        const combined =
+            new Uint8Array(
+                textBytes.length +
+                imageBytes.length
+            );
+
+        combined.set(
+            textBytes,
+            0
         );
 
-    if (!canvas) {
+        combined.set(
+            imageBytes,
+            textBytes.length
+        );
 
-        // Safety fallback
+        // ----------------------------------------------------
+        // 4. Send ONE ESC/POS job to RawBT
+        // ----------------------------------------------------
+
+        printRawBTBytes(
+            combined
+        );
+
+    }
+    catch (error) {
+
+        console.error(
+            "Pushpanjali thermal print failed:",
+            error
+        );
+
+        // Safe fallback:
+        // print the normal receipt rather than failing silently.
         printWithRawBT(
             receipt
         );
 
-        return;
     }
 
-    // --------------------------------------------------------
-    // Convert complete receipt to PNG
-    // --------------------------------------------------------
-
-    const dataUrl =
-        canvas.toDataURL(
-            "image/png"
-        );
-
-    const base64 =
-        dataUrl.split(",")[1];
-
-    // --------------------------------------------------------
-    // ONE RawBT launch
-    // --------------------------------------------------------
-
-    const rawbtUrl =
-        `rawbt:data:image/png;base64,${base64}`;
-
-    const link =
-        document.createElement("a");
-
-    link.href =
-        rawbtUrl;
-
-    link.textContent =
-        "Print Receipt and Pushpanjali";
-
-    link.style.display =
-        "none";
-
-    document.body.appendChild(
-        link
-    );
-
-    link.click();
-
-    document.body.removeChild(
-        link
-    );
 };
+

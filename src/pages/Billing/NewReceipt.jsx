@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
     Box,
     Grid,
@@ -24,7 +24,8 @@ import PrintIcon from "@mui/icons-material/Print";
 import {
     printThermalReceipt,
     printWithRawBT,
-    printReceiptWithPushpanjali
+    printReceiptWithPushpanjali,
+    isAndroidDevice
 } from "../../utils/thermalReceipt";
 
 // ======================================================
@@ -63,6 +64,7 @@ export default function NewReceipt() {
     const [saving, setSaving] = useState(false);
     const [resetGridKey, setResetGridKey] = useState(0);
     const [printData, setPrintData] = useState(null);
+    const printTriggeredForReceipt = useRef(null);
     const [message, setMessage] = useState("");
     const [messageType, setMessageType] = useState("success");
     const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -595,14 +597,10 @@ export default function NewReceipt() {
 
             setReceiptDate(today);
 
-            // Print after successful save.
-// Android -> RawBT -> Bluetooth thermal printer
-// Desktop -> normal Chrome printing
-setTimeout(() => {
-    printReceiptWithPushpanjali(
-        receiptForPrinting
-    );
-}, 300);
+            // Printing is triggered by the printData effect below.
+            // This is important for desktop printing because the
+            // browser must first render the hidden thermal print area.
+            // Android keeps the existing RawBT + Pushpanjali image path.
 
         }
 
@@ -628,6 +626,58 @@ setTimeout(() => {
         }
 
     };
+
+
+    // ==================================================
+    // PRINT AFTER SAVE
+    //
+    // Wait until printData has been rendered into the hidden
+    // thermal print area. Android keeps the existing RawBT
+    // Pushpanjali image printing. Laptop/desktop uses the
+    // browser print dialog.
+    // ==================================================
+
+    useEffect(() => {
+
+        if (!printData) {
+            return;
+        }
+
+        const receiptKey =
+            printData.receipt_no ||
+            printData.created_at;
+
+        if (
+            printTriggeredForReceipt.current ===
+            receiptKey
+        ) {
+            return;
+        }
+
+        printTriggeredForReceipt.current =
+            receiptKey;
+
+        const timer = setTimeout(() => {
+
+            if (isAndroidDevice()) {
+
+                printReceiptWithPushpanjali(
+                    printData
+                );
+
+            } else {
+
+                window.print();
+
+            }
+
+        }, 500);
+
+        return () => {
+            clearTimeout(timer);
+        };
+
+    }, [printData]);
 
 
     // ==================================================
@@ -1092,18 +1142,22 @@ setTimeout(() => {
                             top: 0 !important;
                             width: 58mm !important;
                             box-sizing: border-box !important;
-                            padding: 2mm 1.5mm !important;
+                            padding: 2mm 2mm !important;
                             margin: 0 !important;
                             color: #000 !important;
                             background: #fff !important;
-                            font-family: "Courier New", Courier, monospace !important;
-                            font-size: 10px !important;
-                            line-height: 1.25 !important;
-                            font-weight: 500 !important;
+                            font-family: Arial, "Segoe UI", sans-serif !important;
+                            font-size: 12px !important;
+                            line-height: 1.35 !important;
+                            font-weight: 600 !important;
+                            letter-spacing: 0 !important;
+                            -webkit-print-color-adjust: exact !important;
+                            print-color-adjust: exact !important;
                         }
 
                         .thermal-center {
                             text-align: center !important;
+                            font-weight: 700 !important;
                         }
 
                         .thermal-line {
@@ -1113,6 +1167,7 @@ setTimeout(() => {
 
                         .thermal-item {
                             margin-bottom: 2mm !important;
+                            font-weight: 600 !important;
                         }
 
                         .thermal-row {
@@ -1231,6 +1286,90 @@ setTimeout(() => {
                     <div className="thermal-center">
                         Thank You
                     </div>
+
+                    {printData.items.some(
+                        item =>
+                            Number(item.offering_id) === 2 &&
+                            (
+                                item.beneficiary_name_ml ||
+                                item.malayalam_name ||
+                                item.beneficiary_name
+                            )
+                    ) && (
+                        <>
+                            <div
+                                style={{
+                                    height: "18mm"
+                                }}
+                            />
+
+                            <div
+                                className="thermal-center"
+                                style={{
+                                    fontFamily:
+                                        '"Noto Sans Malayalam", "Noto Sans", sans-serif',
+                                    fontWeight: 700,
+                                    fontSize: "16px"
+                                }}
+                            >
+                                പുഷ്പാഞ്ജലി
+                            </div>
+
+                            <div className="thermal-line" />
+
+                            {printData.items
+                                .filter(
+                                    item =>
+                                        Number(item.offering_id) === 2 &&
+                                        (
+                                            item.beneficiary_name_ml ||
+                                            item.malayalam_name ||
+                                            item.beneficiary_name
+                                        )
+                                )
+                                .map(
+                                    (item, index) => {
+
+                                        const name =
+                                            item.beneficiary_name_ml ||
+                                            item.malayalam_name ||
+                                            item.beneficiary_name ||
+                                            "";
+
+                                        const star =
+                                            item.nakshathra_ml ||
+                                            item.nakshathra_en ||
+                                            "";
+
+                                        return (
+                                            <div
+                                                key={`pushpanjali-${index}`}
+                                                className="thermal-item"
+                                                style={{
+                                                    fontFamily:
+                                                        '"Noto Sans Malayalam", "Noto Sans", sans-serif',
+                                                    fontSize: "13px"
+                                                }}
+                                            >
+                                                {index + 1}. {name}
+                                                {star
+                                                    ? ` - ${star}`
+                                                    : ""}
+                                            </div>
+                                        );
+
+                                    }
+                                )}
+
+                            <div className="thermal-line" />
+
+                            <div
+                                style={{
+                                    height: "8mm"
+                                }}
+                            />
+                        </>
+                    )}
                 </Box>
             )}
 
