@@ -747,9 +747,9 @@ export default function ReceiptSearch() {
                     <Grid
                         item
                         xs={12}
-                        md={3}
+                        sm={6}
+                        md={2}
                     >
-
                         <TextField
                             fullWidth
                             size="small"
@@ -761,7 +761,6 @@ export default function ReceiptSearch() {
                                 )
                             }
                         />
-
                     </Grid>
 
 
@@ -770,9 +769,9 @@ export default function ReceiptSearch() {
                     <Grid
                         item
                         xs={12}
+                        sm={6}
                         md={3}
                     >
-
                         <TextField
                             fullWidth
                             size="small"
@@ -784,7 +783,6 @@ export default function ReceiptSearch() {
                                 )
                             }
                         />
-
                     </Grid>
 
 
@@ -793,9 +791,9 @@ export default function ReceiptSearch() {
                     <Grid
                         item
                         xs={12}
+                        sm={6}
                         md={2}
                     >
-
                         <TextField
                             fullWidth
                             size="small"
@@ -807,7 +805,6 @@ export default function ReceiptSearch() {
                                 )
                             }
                         />
-
                     </Grid>
 
 
@@ -816,25 +813,46 @@ export default function ReceiptSearch() {
                     <Grid
                         item
                         xs={12}
+                        sm={6}
                         md={2}
                     >
-
-                        <TextField
-                            fullWidth
-                            size="small"
-                            label="Receipt Date"
-                            type="date"
-                            value={date}
-                            onChange={(e) =>
-                                setDate(
-                                    e.target.value
-                                )
-                            }
-                            InputLabelProps={{
-                                shrink: true
+                        <Box
+                            sx={{
+                                position: "relative"
                             }}
-                        />
+                        >
+                            <Typography
+                                component="span"
+                                sx={{
+                                    position: "absolute",
+                                    top: -7,
+                                    left: 10,
+                                    zIndex: 1,
+                                    px: 0.5,
+                                    backgroundColor: "#FFFFFF",
+                                    color: "text.secondary",
+                                    fontSize: 12,
+                                    lineHeight: 1
+                                }}
+                            >
+                                Receipt Date
+                            </Typography>
 
+                            <TextField
+                                fullWidth
+                                size="small"
+                                type="date"
+                                value={date}
+                                onChange={(e) =>
+                                    setDate(
+                                        e.target.value
+                                    )
+                                }
+                                inputProps={{
+                                    "aria-label": "Receipt Date"
+                                }}
+                            />
+                        </Box>
                     </Grid>
 
 
@@ -843,9 +861,9 @@ export default function ReceiptSearch() {
                     <Grid
                         item
                         xs={12}
-                        md={2}
+                        sm={6}
+                        md={3}
                     >
-
                         <TextField
                             select
                             fullWidth
@@ -858,15 +876,12 @@ export default function ReceiptSearch() {
                                 )
                             }
                         >
-
                             <MenuItem value="">
                                 All
                             </MenuItem>
 
-
                             {paymentModes.map(
                                 (mode) => (
-
                                     <MenuItem
                                         key={mode.id}
                                         value={
@@ -875,16 +890,11 @@ export default function ReceiptSearch() {
                                             )
                                         }
                                     >
-
                                         {mode.payment_mode}
-
                                     </MenuItem>
-
                                 )
                             )}
-
                         </TextField>
-
                     </Grid>
 
                 </Grid>

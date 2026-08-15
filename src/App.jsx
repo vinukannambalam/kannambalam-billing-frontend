@@ -14,6 +14,13 @@ import PaymentModes from "./pages/Masters/PaymentModes";
 import ReportsHome from "./pages/Reports/ReportsHome";
 import Users from "./pages/Administration/Users";
 import Settings from "./pages/Administration/Settings";
+
+import AccountsMaster from "./pages/Accounts/AccountsMaster";
+import JournalVoucher from "./pages/Accounts/JournalVoucher";
+
+import SupplierMaster from "./pages/Purchase/SupplierMaster";
+import PurchaseInvoice from "./pages/Purchase/PurchaseInvoice";
+import PhysicalStockEntry from "./pages/Purchase/PhysicalStockEntry";
 function App() {
     return (
         <BrowserRouter>
@@ -71,16 +78,6 @@ function App() {
 
 
                         {/* ==================================================
-                            REPORTS
-                        ================================================== */}
-
-                        <Route
-                            path="reports"
-                            element={<ReportsHome />}
-                        />
-
-
-                        {/* ==================================================
                             ADMINISTRATOR ONLY
                         ================================================== */}
 
@@ -89,6 +86,16 @@ function App() {
                                 <AdminRoute />
                             }
                         >
+
+                            {/* ==================================================
+                                REPORTS - ADMIN ONLY
+                            ================================================== */}
+
+                            <Route
+                                path="reports"
+                                element={<ReportsHome />}
+                            />
+
 
                             {/* ==============================
                                 MASTERS
@@ -115,6 +122,41 @@ function App() {
                             <Route
                                 path="masters/payment-modes"
                                 element={<PaymentModes />}
+                            />
+
+
+                            {/* ==============================
+                                ACCOUNTS
+                            ============================== */}
+
+                            <Route
+                                path="accounts/master"
+                                element={<AccountsMaster />}
+                            />
+
+                            <Route
+                                path="accounts/journal-voucher"
+                                element={<JournalVoucher />}
+                            />
+
+
+                            {/* ==============================
+                                PURCHASE
+                            ============================== */}
+
+                            <Route
+                                path="purchase/suppliers"
+                                element={<SupplierMaster />}
+                            />
+
+                            <Route
+                                path="purchase/invoices"
+                                element={<PurchaseInvoice />}
+                            />
+
+                            <Route
+                                path="purchase/physical-stock"
+                                element={<PhysicalStockEntry />}
                             />
 
 

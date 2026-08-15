@@ -25,6 +25,12 @@ import PaymentsIcon from "@mui/icons-material/Payments";
 
 import AssessmentIcon from "@mui/icons-material/Assessment";
 
+import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
+import ReceiptIcon from "@mui/icons-material/Receipt";
+import LocalShippingIcon from "@mui/icons-material/LocalShipping";
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import InventoryIcon from "@mui/icons-material/Inventory";
+
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import SettingsIcon from "@mui/icons-material/Settings";
@@ -124,6 +130,12 @@ export default function AppSidebar({
 
     const [reportsOpen, setReportsOpen] =
         useState(true);
+
+    const [accountsOpen, setAccountsOpen] =
+        useState(false);
+
+    const [purchaseOpen, setPurchaseOpen] =
+        useState(false);
 
     const [administrationOpen, setAdministrationOpen] =
         useState(true);
@@ -589,75 +601,29 @@ export default function AppSidebar({
 
 
                     {/* ==================================================
-                        REPORTS
+                        REPORTS - ADMIN ONLY
                     ================================================== */}
 
-                    <ListItemButton
-                        onClick={() =>
-                            setReportsOpen(
-                                !reportsOpen
-                            )
-                        }
-                        sx={sectionHeadingStyle}
-                    >
+                    {isAdmin && (
 
-                        <ListItemIcon
-                            sx={{
-                                minWidth: 38,
-                                color:
-                                    colors.headingText
-                            }}
-                        >
-
-                            <AssessmentIcon />
-
-                        </ListItemIcon>
-
-
-                        <ListItemText
-                            primary="Reports"
-                            primaryTypographyProps={{
-                                fontWeight: 700
-                            }}
-                        />
-
-
-                        {reportsOpen ? (
-
-                            <ExpandLessIcon />
-
-                        ) : (
-
-                            <ExpandMoreIcon />
-
-                        )}
-
-                    </ListItemButton>
-
-
-                    <Collapse
-                        in={reportsOpen}
-                        timeout="auto"
-                        unmountOnExit
-                    >
-
-                        <List
-                            disablePadding
-                        >
+                        <>
 
                             <ListItemButton
-                                component={NavLink}
-                                onClick={onMobileClose}
-                                to="/reports"
-                                sx={{
-
-                                    ...menuItemStyle,
-                                    ml: 2,
-                                    mr: 1
-                                }}
+                                onClick={() =>
+                                    setReportsOpen(
+                                        !reportsOpen
+                                    )
+                                }
+                                sx={sectionHeadingStyle}
                             >
 
-                                <ListItemIcon>
+                                <ListItemIcon
+                                    sx={{
+                                        minWidth: 38,
+                                        color:
+                                            colors.headingText
+                                    }}
+                                >
 
                                     <AssessmentIcon />
 
@@ -666,13 +632,272 @@ export default function AppSidebar({
 
                                 <ListItemText
                                     primary="Reports"
+                                    primaryTypographyProps={{
+                                        fontWeight: 700
+                                    }}
                                 />
+
+
+                                {reportsOpen ? (
+
+                                    <ExpandLessIcon />
+
+                                ) : (
+
+                                    <ExpandMoreIcon />
+
+                                )}
 
                             </ListItemButton>
 
-                        </List>
 
-                    </Collapse>
+                            <Collapse
+                                in={reportsOpen}
+                                timeout="auto"
+                                unmountOnExit
+                            >
+
+                                <List
+                                    disablePadding
+                                >
+
+                                    <ListItemButton
+                                        component={NavLink}
+                                        onClick={onMobileClose}
+                                        to="/reports"
+                                        sx={{
+
+                                            ...menuItemStyle,
+                                            ml: 2,
+                                            mr: 1
+                                        }}
+                                    >
+
+                                        <ListItemIcon>
+
+                                            <AssessmentIcon />
+
+                                        </ListItemIcon>
+
+
+                                        <ListItemText
+                                            primary="Reports"
+                                        />
+
+                                    </ListItemButton>
+
+                                </List>
+
+                            </Collapse>
+
+                        </>
+
+                    )}
+
+
+                    {/* ==================================================
+                        ACCOUNTS - ADMIN ONLY
+                    ================================================== */}
+
+                    {isAdmin && (
+
+                        <>
+
+                            <ListItemButton
+                                onClick={() =>
+                                    setAccountsOpen(
+                                        !accountsOpen
+                                    )
+                                }
+                                sx={sectionHeadingStyle}
+                            >
+
+                                <ListItemIcon
+                                    sx={{
+                                        minWidth: 38,
+                                        color:
+                                            colors.headingText
+                                    }}
+                                >
+                                    <AccountBalanceIcon />
+                                </ListItemIcon>
+
+                                <ListItemText
+                                    primary="Accounts"
+                                    primaryTypographyProps={{
+                                        fontWeight: 700
+                                    }}
+                                />
+
+                                {accountsOpen ? (
+                                    <ExpandLessIcon />
+                                ) : (
+                                    <ExpandMoreIcon />
+                                )}
+
+                            </ListItemButton>
+
+                            <Collapse
+                                in={accountsOpen}
+                                timeout="auto"
+                                unmountOnExit
+                            >
+
+                                <List disablePadding>
+
+                                    <ListItemButton
+                                        component={NavLink}
+                                        onClick={onMobileClose}
+                                        to="/accounts/master"
+                                        sx={{
+                                            ...menuItemStyle,
+                                            ml: 2,
+                                            mr: 1
+                                        }}
+                                    >
+                                        <ListItemIcon>
+                                            <AccountBalanceIcon />
+                                        </ListItemIcon>
+
+                                        <ListItemText
+                                            primary="Accounts Master"
+                                        />
+                                    </ListItemButton>
+
+                                    <ListItemButton
+                                        component={NavLink}
+                                        onClick={onMobileClose}
+                                        to="/accounts/journal-voucher"
+                                        sx={{
+                                            ...menuItemStyle,
+                                            ml: 2,
+                                            mr: 1
+                                        }}
+                                    >
+                                        <ListItemIcon>
+                                            <ReceiptIcon />
+                                        </ListItemIcon>
+
+                                        <ListItemText
+                                            primary="Journal Voucher"
+                                        />
+                                    </ListItemButton>
+
+                                </List>
+
+                            </Collapse>
+
+
+                            {/* ==================================================
+                                PURCHASE - ADMIN ONLY
+                            ================================================== */}
+
+                            <ListItemButton
+                                onClick={() =>
+                                    setPurchaseOpen(
+                                        !purchaseOpen
+                                    )
+                                }
+                                sx={sectionHeadingStyle}
+                            >
+
+                                <ListItemIcon
+                                    sx={{
+                                        minWidth: 38,
+                                        color:
+                                            colors.headingText
+                                    }}
+                                >
+                                    <ShoppingCartIcon />
+                                </ListItemIcon>
+
+                                <ListItemText
+                                    primary="Purchase"
+                                    primaryTypographyProps={{
+                                        fontWeight: 700
+                                    }}
+                                />
+
+                                {purchaseOpen ? (
+                                    <ExpandLessIcon />
+                                ) : (
+                                    <ExpandMoreIcon />
+                                )}
+
+                            </ListItemButton>
+
+                            <Collapse
+                                in={purchaseOpen}
+                                timeout="auto"
+                                unmountOnExit
+                            >
+
+                                <List disablePadding>
+
+                                    <ListItemButton
+                                        component={NavLink}
+                                        onClick={onMobileClose}
+                                        to="/purchase/suppliers"
+                                        sx={{
+                                            ...menuItemStyle,
+                                            ml: 2,
+                                            mr: 1
+                                        }}
+                                    >
+                                        <ListItemIcon>
+                                            <LocalShippingIcon />
+                                        </ListItemIcon>
+
+                                        <ListItemText
+                                            primary="Supplier Master"
+                                        />
+                                    </ListItemButton>
+
+                                    <ListItemButton
+                                        component={NavLink}
+                                        onClick={onMobileClose}
+                                        to="/purchase/invoices"
+                                        sx={{
+                                            ...menuItemStyle,
+                                            ml: 2,
+                                            mr: 1
+                                        }}
+                                    >
+                                        <ListItemIcon>
+                                            <ReceiptIcon />
+                                        </ListItemIcon>
+
+                                        <ListItemText
+                                            primary="Purchase Invoice"
+                                        />
+                                    </ListItemButton>
+
+                                    <ListItemButton
+                                        component={NavLink}
+                                        onClick={onMobileClose}
+                                        to="/purchase/physical-stock"
+                                        sx={{
+                                            ...menuItemStyle,
+                                            ml: 2,
+                                            mr: 1
+                                        }}
+                                    >
+                                        <ListItemIcon>
+                                            <InventoryIcon />
+                                        </ListItemIcon>
+
+                                        <ListItemText
+                                            primary="Physical Stock Entry"
+                                        />
+                                    </ListItemButton>
+
+                                </List>
+
+                            </Collapse>
+
+                        </>
+
+                    )}
 
 
                     {/* ==================================================
