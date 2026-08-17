@@ -120,6 +120,50 @@ export default function Dashboard() {
 
 
     // ==================================================
+    // GET CURRENT LOGGED-IN USER
+    // ==================================================
+
+    const storedUser =
+        localStorage.getItem(
+            "billing_user"
+        );
+
+    let user = null;
+
+    try {
+
+        user = storedUser
+            ? JSON.parse(storedUser)
+            : null;
+
+    }
+    catch (error) {
+
+        console.error(
+            "Unable to read logged-in user:",
+            error
+        );
+
+        user = null;
+
+    }
+
+
+    // ==================================================
+    // ADMIN CHECK
+    // ==================================================
+
+    const userRole =
+        String(user?.role || "")
+            .trim()
+            .toLowerCase();
+
+    const isAdmin =
+        userRole === "admin" ||
+        userRole === "administrator";
+
+
+    // ==================================================
     // STATE
     // ==================================================
 
@@ -999,20 +1043,22 @@ export default function Dashboard() {
                         </Button>
 
 
-                        <Button
-                            fullWidth
-                            variant="outlined"
-                            sx={{
-                                height: 48
-                            }}
-                            onClick={() =>
-                                navigate(
-                                    "/masters/devotees"
-                                )
-                            }
-                        >
-                            MANAGE DEVOTEES
-                        </Button>
+                        {isAdmin && (
+                            <Button
+                                fullWidth
+                                variant="outlined"
+                                sx={{
+                                    height: 48
+                                }}
+                                onClick={() =>
+                                    navigate(
+                                        "/masters/devotees"
+                                    )
+                                }
+                            >
+                                MANAGE DEVOTEES
+                            </Button>
+                        )}
 
                     </Paper>
 

@@ -1,5 +1,4 @@
 import { useState } from "react";
-
 import {
     Drawer,
     Toolbar,
@@ -10,34 +9,27 @@ import {
     Box,
     Collapse
 } from "@mui/material";
-
 import { NavLink } from "react-router-dom";
-
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import AddIcon from "@mui/icons-material/Add";
 import SearchIcon from "@mui/icons-material/Search";
-
 import PeopleIcon from "@mui/icons-material/People";
 import CategoryIcon from "@mui/icons-material/Category";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import PaymentsIcon from "@mui/icons-material/Payments";
-
 import AssessmentIcon from "@mui/icons-material/Assessment";
-
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import ReceiptIcon from "@mui/icons-material/Receipt";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import InventoryIcon from "@mui/icons-material/Inventory";
-
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import SettingsIcon from "@mui/icons-material/Settings";
-
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-
+import PhotoLibraryIcon from "@mui/icons-material/PhotoLibrary";
 
 const drawerWidth = 250;
 
@@ -686,6 +678,30 @@ export default function AppSidebar({
 
                                     </ListItemButton>
 
+                                    <ListItemButton
+                                        component={NavLink}
+                                        onClick={onMobileClose}
+                                        to="/reports/charts"
+                                        sx={{
+                                            ...menuItemStyle,
+                                            ml: 2,
+                                            mr: 1
+                                        }}
+                                    >
+
+                                        <ListItemIcon>
+
+                                            <AssessmentIcon />
+
+                                        </ListItemIcon>
+
+
+                                        <ListItemText
+                                            primary="Charts"
+                                        />
+
+                                    </ListItemButton>
+
                                 </List>
 
                             </Collapse>
@@ -1003,6 +1019,7 @@ export default function AppSidebar({
                                         }}
                                     >
 
+
                                         <ListItemIcon>
 
                                             <SettingsIcon />
@@ -1012,6 +1029,29 @@ export default function AppSidebar({
 
                                         <ListItemText
                                             primary="Settings"
+                                        />
+
+                                    </ListItemButton>
+                                    <ListItemButton
+                                        component={NavLink}
+                                        onClick={onMobileClose}
+                                        to="/gallery"
+                                        sx={{
+                                            ...menuItemStyle,
+                                            ml: 2,
+                                            mr: 1
+                                        }}
+                                    >
+
+                                        <ListItemIcon>
+
+                                            <PhotoLibraryIcon />
+
+                                        </ListItemIcon>
+
+
+                                        <ListItemText
+                                            primary="Gallery"
                                         />
 
                                     </ListItemButton>

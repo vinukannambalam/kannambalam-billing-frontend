@@ -14,13 +14,16 @@ import PaymentModes from "./pages/Masters/PaymentModes";
 import ReportsHome from "./pages/Reports/ReportsHome";
 import Users from "./pages/Administration/Users";
 import Settings from "./pages/Administration/Settings";
-
 import AccountsMaster from "./pages/Accounts/AccountsMaster";
 import JournalVoucher from "./pages/Accounts/JournalVoucher";
-
 import SupplierMaster from "./pages/Purchase/SupplierMaster";
 import PurchaseInvoice from "./pages/Purchase/PurchaseInvoice";
 import PhysicalStockEntry from "./pages/Purchase/PhysicalStockEntry";
+import ChartsHome from "./pages/Reports/ChartsHome";
+import Gallery from "./pages/Administration/Gallery";
+import GalleryCategories from "./pages/Administration/GalleryCategories";
+import GalleryAlbums from "./pages/Administration/GalleryAlbums";
+import GalleryPhotos from "./pages/Administration/GalleryPhotos";
 function App() {
     return (
         <BrowserRouter>
@@ -96,6 +99,10 @@ function App() {
                                 element={<ReportsHome />}
                             />
 
+                            <Route
+                                path="reports/charts"
+                                element={<ChartsHome />}
+                            />
 
                             {/* ==============================
                                 MASTERS
@@ -173,6 +180,25 @@ function App() {
                             <Route
                                 path="settings"
                                 element={<Settings />}
+                            />
+                            <Route
+                                path="gallery"
+                                element={<Gallery />}
+                            />
+
+                            <Route
+                                path="gallery/categories"
+                                element={<GalleryCategories />}
+                            />
+
+                            <Route
+                                path="gallery/:categoryId/albums"
+                                element={<GalleryAlbums />}
+                            />
+
+                            <Route
+                                path="gallery/albums/:albumId/photos"
+                                element={<GalleryPhotos />}
                             />
 
                         </Route>

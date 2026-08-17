@@ -214,10 +214,13 @@ export default function DashboardReport() {
         }
 
 
-        if (selectedReport !== "collection") {
+        if (
+            selectedReport !== "collection" &&
+            selectedReport !== "offering"
+        ) {
 
             setError(
-                "This report is not available yet. Collection Report is currently available."
+                "This report is not available yet. Collection and Offering-wise Collection are currently available."
             );
 
             return;
@@ -245,9 +248,14 @@ export default function DashboardReport() {
 
         try {
 
+            const reportEndpoint =
+                selectedReport === "offering"
+                    ? "offering-wise"
+                    : "collection";
+
             const response =
                 await fetch(
-                    `https://billing-api.kannambalam.com/api/reports/collection?from_date=${encodeURIComponent(fromDate)}&to_date=${encodeURIComponent(toDate)}`,
+                    `https://billing-api.kannambalam.com/api/reports/${reportEndpoint}?from_date=${encodeURIComponent(fromDate)}&to_date=${encodeURIComponent(toDate)}`,
                     {
                         method: "GET",
 
@@ -325,7 +333,7 @@ export default function DashboardReport() {
         catch (err) {
 
             console.error(
-                "Collection report error:",
+                `${selectedReport} report error:`,
                 err
             );
 
@@ -346,7 +354,7 @@ export default function DashboardReport() {
 
 
     // =====================================================
-    // EXPORT COLLECTION REPORT TO EXCEL
+    // EXPORT REPORT TO EXCEL
     // =====================================================
 
     const exportToExcel = () => {
@@ -356,13 +364,18 @@ export default function DashboardReport() {
         }
 
 
+        const reportTitle =
+            selectedReportDetails?.title ||
+            "Report";
+
+
         // -------------------------------------------------
         // SUMMARY SHEET
         // -------------------------------------------------
 
         const summaryData = [
 
-            ["Collection Report"],
+            [reportTitle],
 
             [],
 
@@ -387,9 +400,12 @@ export default function DashboardReport() {
 
             [
                 "Total Collection",
-                Number(
+                `₹${Number(
                     reportSummary?.total_collection || 0
-                )
+                ).toLocaleString("en-IN", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                })}`
             ]
 
         ];
@@ -399,6 +415,12 @@ export default function DashboardReport() {
             XLSX.utils.aoa_to_sheet(
                 summaryData
             );
+
+        // Show the total collection with a Rupee glyph in the
+        // Excel Summary sheet for both report types.
+        if (summarySheet["B7"]) {
+            summarySheet["B7"].z = "₹#,##0.00";
+        }
 
 
         summarySheet["!cols"] = [
@@ -415,56 +437,203 @@ export default function DashboardReport() {
         // DETAIL SHEET
         // -------------------------------------------------
 
-        const detailData =
-            reportRows.map(
-                row => ({
+        let detailData;
+        let detailSheetName;
+        let columnWidths;
+        let currencyColumns = [];
 
-                    "Receipt No":
-                        row.receipt_no || "",
 
-                    "Date":
-                        formatDate(
-                            row.receipt_date
-                        ),
+        if (selectedReport === "offering") {
 
-                    "Main Devotee":
-                        row.main_devotee || "",
+            detailData =
+                reportRows.map(
+                    (row, index) => ({
 
-                    "Beneficiary":
-                        row.beneficiary_name || "",
+                        "S.No.":
+                            index + 1,
 
-                    "Offering":
-                        row.offering_name || "",
+                        "Offering":
+                            row.offering_name || "",
 
-                    "Category":
-                        row.category_name || "",
+                        "Offering (Malayalam)":
+                            row.offering_name_ml || "",
 
-                    "Qty":
-                        Number(
-                            row.quantity || 0
-                        ),
+                        "Category":
+                            row.category_name || "",
 
-                    "Rate":
-                        Number(
-                            row.rate || 0
-                        ),
+                        "Receipt Count":
+                            Number(
+                                row.receipt_count || 0
+                            ),
 
-                    "Amount":
-                        Number(
-                            row.item_amount || 0
-                        ),
+                        "Quantity":
+                            Number(
+                                row.total_quantity || 0
+                            ),
 
-                    "Payment Mode":
-                        row.payment_mode || "",
+                        "Collection":
+                            Number(
+                                row.total_collection || 0
+                            )
 
-                    "Status":
-                        row.status_name || "",
+                    })
+                );
 
-                    "Created By":
-                        row.created_by_name || ""
 
-                })
-            );
+            detailSheetName =
+                "Offering-wise Collection";
+
+
+            columnWidths = [
+                {
+                    wch: 8
+                },
+                {
+                    wch: 25
+                },
+                {
+                    wch: 25
+                },
+                {
+                    wch: 20
+                },
+                {
+                    wch: 16
+                },
+                {
+                    wch: 12
+                },
+                {
+                    wch: 18
+                }
+            ];
+
+
+            // Collection is column G (zero-based index 6).
+            // Receipt Count (E) and Quantity (F) are plain numbers.
+            currencyColumns = [6];
+
+        }
+        else {
+
+            detailData =
+                reportRows.map(
+                    (row, index) => ({
+
+                        "S.No.":
+                            index + 1,
+
+                        "Receipt No":
+                            row.receipt_no || "",
+
+                        "Date":
+                            formatDate(
+                                row.receipt_date
+                            ),
+
+                        "Main Devotee":
+                            row.main_devotee || "",
+
+                        "Beneficiary":
+                            row.beneficiary_name || "",
+
+                        "Offering":
+                            row.offering_name || "",
+
+                        "Category":
+                            row.category_name || "",
+
+                        "Qty":
+                            Number(
+                                row.quantity || 0
+                            ),
+
+                        "Rate":
+                            Number(
+                                row.rate || 0
+                            ),
+
+                        "Amount":
+                            Number(
+                                row.item_amount || 0
+                            ),
+
+                        "Payment Mode":
+                            row.payment_mode || "",
+
+                        "Status":
+                            row.status_name || "",
+
+                        "Created By":
+                            row.created_by_name || ""
+
+                    })
+                );
+
+
+            detailSheetName =
+                "Collection Report";
+
+
+            columnWidths = [
+                {
+                    wch: 8
+                },
+
+                {
+                    wch: 16
+                },
+
+                {
+                    wch: 14
+                },
+
+                {
+                    wch: 25
+                },
+
+                {
+                    wch: 25
+                },
+
+                {
+                    wch: 22
+                },
+
+                {
+                    wch: 18
+                },
+
+                {
+                    wch: 8
+                },
+
+                {
+                    wch: 14
+                },
+
+                {
+                    wch: 14
+                },
+
+                {
+                    wch: 16
+                },
+
+                {
+                    wch: 14
+                },
+
+                {
+                    wch: 20
+                }
+
+            ];
+
+
+            currencyColumns = [8, 9];
+
+        }
 
 
         const detailSheet =
@@ -473,66 +642,12 @@ export default function DashboardReport() {
             );
 
 
-        detailSheet["!cols"] = [
-
-            {
-                wch: 16
-            },
-
-            {
-                wch: 14
-            },
-
-            {
-                wch: 25
-            },
-
-            {
-                wch: 25
-            },
-
-            {
-                wch: 22
-            },
-
-            {
-                wch: 18
-            },
-
-            {
-                wch: 8
-            },
-
-            {
-                wch: 14
-            },
-
-            {
-                wch: 14
-            },
-
-            {
-                wch: 16
-            },
-
-            {
-                wch: 14
-            },
-
-            {
-                wch: 20
-            }
-
-        ];
+        detailSheet["!cols"] =
+            columnWidths;
 
 
         // -------------------------------------------------
         // CURRENCY FORMATTING
-        // -------------------------------------------------
-        //
-        // Excel stores Rate and Amount as numbers.
-        // We apply an INR number format so they remain
-        // usable for calculations while displaying currency.
         // -------------------------------------------------
 
         const range =
@@ -547,40 +662,27 @@ export default function DashboardReport() {
             rowIndex++
         ) {
 
-            // Rate = column H
-            const rateCell =
-                detailSheet[
-                    XLSX.utils.encode_cell({
-                        r: rowIndex,
-                        c: 7
-                    })
-                ];
+            currencyColumns.forEach(
+                columnIndex => {
+
+                    const cell =
+                        detailSheet[
+                            XLSX.utils.encode_cell({
+                                r: rowIndex,
+                                c: columnIndex
+                            })
+                        ];
 
 
-            if (rateCell) {
+                    if (cell) {
 
-                rateCell.z =
-                    '₹#,##0.00';
+                        cell.z =
+                            '₹#,##0.00';
 
-            }
+                    }
 
-
-            // Amount = column I
-            const amountCell =
-                detailSheet[
-                    XLSX.utils.encode_cell({
-                        r: rowIndex,
-                        c: 8
-                    })
-                ];
-
-
-            if (amountCell) {
-
-                amountCell.z =
-                    '₹#,##0.00';
-
-            }
+                }
+            );
 
         }
 
@@ -603,7 +705,7 @@ export default function DashboardReport() {
         XLSX.utils.book_append_sheet(
             workbook,
             detailSheet,
-            "Collection Report"
+            detailSheetName
         );
 
 
@@ -612,7 +714,9 @@ export default function DashboardReport() {
         // -------------------------------------------------
 
         const filename =
-            `Collection_Report_${fromDate}_to_${toDate}.xlsx`;
+            selectedReport === "offering"
+                ? `Offering_Wise_Collection_${fromDate}_to_${toDate}.xlsx`
+                : `Collection_Report_${fromDate}_to_${toDate}.xlsx`;
 
 
         XLSX.writeFile(
@@ -1203,7 +1307,10 @@ export default function DashboardReport() {
                                     color: "#263238"
                                 }}
                             >
-                                Collection Report
+                                {
+                                    selectedReportDetails?.title ||
+                                    "Report"
+                                }
                             </Typography>
 
 
@@ -1425,424 +1532,723 @@ export default function DashboardReport() {
                             }}
                         >
 
-                            <Table
-                                stickyHeader
-                                size="small"
-                                sx={{
-                                    minWidth: 1450,
+                            {selectedReport === "offering" ? (
 
-                                    tableLayout:
-                                        "auto"
-                                }}
-                            >
+                                <Table
+                                    stickyHeader
+                                    size="small"
+                                    sx={{
+                                        minWidth: 850,
+                                        tableLayout: "auto"
+                                    }}
+                                >
 
-                                <TableHead>
-
-                                    <TableRow>
-
-                                        <TableCell
-                                            sx={{
-                                                width: 120,
-                                                minWidth: 120,
-                                                fontWeight: 700,
-                                                color: "#FFFFFF",
-                                                backgroundColor: "#8B0000",
-                                                whiteSpace: "nowrap",
-                                                px: 1.5,
-                                                py: 1.2
-                                            }}
-                                        >
-                                            Receipt No
-                                        </TableCell>
-
-
-                                        <TableCell
-                                            sx={{
-                                                width: 105,
-                                                minWidth: 105,
-                                                fontWeight: 700,
-                                                color: "#FFFFFF",
-                                                backgroundColor: "#8B0000",
-                                                whiteSpace: "nowrap",
-                                                px: 1.5,
-                                                py: 1.2
-                                            }}
-                                        >
-                                            Date
-                                        </TableCell>
-
-
-                                        <TableCell
-                                            sx={{
-                                                width: 170,
-                                                minWidth: 170,
-                                                fontWeight: 700,
-                                                color: "#FFFFFF",
-                                                backgroundColor: "#8B0000",
-                                                whiteSpace: "nowrap",
-                                                px: 1.5,
-                                                py: 1.2
-                                            }}
-                                        >
-                                            Main Devotee
-                                        </TableCell>
-
-
-                                        <TableCell
-                                            sx={{
-                                                width: 170,
-                                                minWidth: 170,
-                                                fontWeight: 700,
-                                                color: "#FFFFFF",
-                                                backgroundColor: "#8B0000",
-                                                whiteSpace: "nowrap",
-                                                px: 1.5,
-                                                py: 1.2
-                                            }}
-                                        >
-                                            Beneficiary
-                                        </TableCell>
-
-
-                                        <TableCell
-                                            sx={{
-                                                width: 150,
-                                                minWidth: 150,
-                                                fontWeight: 700,
-                                                color: "#FFFFFF",
-                                                backgroundColor: "#8B0000",
-                                                whiteSpace: "nowrap",
-                                                px: 1.5,
-                                                py: 1.2
-                                            }}
-                                        >
-                                            Offering
-                                        </TableCell>
-
-
-                                        <TableCell
-                                            sx={{
-                                                width: 130,
-                                                minWidth: 130,
-                                                fontWeight: 700,
-                                                color: "#FFFFFF",
-                                                backgroundColor: "#8B0000",
-                                                whiteSpace: "nowrap",
-                                                px: 1.5,
-                                                py: 1.2
-                                            }}
-                                        >
-                                            Category
-                                        </TableCell>
-
-
-                                        <TableCell
-                                            align="right"
-                                            sx={{
-                                                width: 65,
-                                                minWidth: 65,
-                                                fontWeight: 700,
-                                                color: "#FFFFFF",
-                                                backgroundColor: "#8B0000",
-                                                whiteSpace: "nowrap",
-                                                px: 1.5,
-                                                py: 1.2
-                                            }}
-                                        >
-                                            Qty
-                                        </TableCell>
-
-
-                                        <TableCell
-                                            align="right"
-                                            sx={{
-                                                width: 105,
-                                                minWidth: 105,
-                                                fontWeight: 700,
-                                                color: "#FFFFFF",
-                                                backgroundColor: "#8B0000",
-                                                whiteSpace: "nowrap",
-                                                px: 1.5,
-                                                py: 1.2
-                                            }}
-                                        >
-                                            Rate
-                                        </TableCell>
-
-
-                                        <TableCell
-                                            align="right"
-                                            sx={{
-                                                width: 115,
-                                                minWidth: 115,
-                                                fontWeight: 700,
-                                                color: "#FFFFFF",
-                                                backgroundColor: "#8B0000",
-                                                whiteSpace: "nowrap",
-                                                px: 1.5,
-                                                py: 1.2
-                                            }}
-                                        >
-                                            Amount
-                                        </TableCell>
-
-
-                                        <TableCell
-                                            sx={{
-                                                width: 130,
-                                                minWidth: 130,
-                                                fontWeight: 700,
-                                                color: "#FFFFFF",
-                                                backgroundColor: "#8B0000",
-                                                whiteSpace: "nowrap",
-                                                px: 1.5,
-                                                py: 1.2
-                                            }}
-                                        >
-                                            Payment Mode
-                                        </TableCell>
-
-
-                                        <TableCell
-                                            sx={{
-                                                width: 105,
-                                                minWidth: 105,
-                                                fontWeight: 700,
-                                                color: "#FFFFFF",
-                                                backgroundColor: "#8B0000",
-                                                whiteSpace: "nowrap",
-                                                px: 1.5,
-                                                py: 1.2
-                                            }}
-                                        >
-                                            Status
-                                        </TableCell>
-
-
-                                        <TableCell
-                                            sx={{
-                                                width: 145,
-                                                minWidth: 145,
-                                                fontWeight: 700,
-                                                color: "#FFFFFF",
-                                                backgroundColor: "#8B0000",
-                                                whiteSpace: "nowrap",
-                                                px: 1.5,
-                                                py: 1.2
-                                            }}
-                                        >
-                                            Created By
-                                        </TableCell>
-
-                                    </TableRow>
-
-                                </TableHead>
-
-
-
-                                <TableBody>
-
-                                    {reportRows.length === 0 ? (
+                                    <TableHead>
 
                                         <TableRow>
 
                                             <TableCell
-                                                colSpan={12}
                                                 align="center"
                                                 sx={{
-                                                    py: 5,
-
-                                                    color:
-                                                        "text.secondary"
+                                                    width: 70,
+                                                    minWidth: 70,
+                                                    fontWeight: 700,
+                                                    color: "#FFFFFF",
+                                                    backgroundColor: "#8B0000",
+                                                    whiteSpace: "nowrap",
+                                                    px: 1.5,
+                                                    py: 1.2
                                                 }}
                                             >
-                                                No records found for the selected date range.
+                                                S.No.
+                                            </TableCell>
+
+
+                                            <TableCell
+                                                sx={{
+                                                    width: 260,
+                                                    minWidth: 220,
+                                                    fontWeight: 700,
+                                                    color: "#FFFFFF",
+                                                    backgroundColor: "#8B0000",
+                                                    whiteSpace: "nowrap",
+                                                    px: 1.5,
+                                                    py: 1.2
+                                                }}
+                                            >
+                                                Offering
+                                            </TableCell>
+
+
+                                            <TableCell
+                                                sx={{
+                                                    width: 190,
+                                                    minWidth: 160,
+                                                    fontWeight: 700,
+                                                    color: "#FFFFFF",
+                                                    backgroundColor: "#8B0000",
+                                                    whiteSpace: "nowrap",
+                                                    px: 1.5,
+                                                    py: 1.2
+                                                }}
+                                            >
+                                                Category
+                                            </TableCell>
+
+
+                                            <TableCell
+                                                align="right"
+                                                sx={{
+                                                    width: 130,
+                                                    minWidth: 120,
+                                                    fontWeight: 700,
+                                                    color: "#FFFFFF",
+                                                    backgroundColor: "#8B0000",
+                                                    whiteSpace: "nowrap",
+                                                    px: 1.5,
+                                                    py: 1.2
+                                                }}
+                                            >
+                                                Receipt Count
+                                            </TableCell>
+
+
+                                            <TableCell
+                                                align="right"
+                                                sx={{
+                                                    width: 110,
+                                                    minWidth: 100,
+                                                    fontWeight: 700,
+                                                    color: "#FFFFFF",
+                                                    backgroundColor: "#8B0000",
+                                                    whiteSpace: "nowrap",
+                                                    px: 1.5,
+                                                    py: 1.2
+                                                }}
+                                            >
+                                                Quantity
+                                            </TableCell>
+
+
+                                            <TableCell
+                                                align="right"
+                                                sx={{
+                                                    width: 150,
+                                                    minWidth: 140,
+                                                    fontWeight: 700,
+                                                    color: "#FFFFFF",
+                                                    backgroundColor: "#8B0000",
+                                                    whiteSpace: "nowrap",
+                                                    px: 1.5,
+                                                    py: 1.2
+                                                }}
+                                            >
+                                                Collection
                                             </TableCell>
 
                                         </TableRow>
 
-                                    ) : (
+                                    </TableHead>
 
-                                        reportRows.map(
-                                            (row, index) => (
 
-                                                <TableRow
-                                                    key={
-                                                        `${row.receipt_id}-${index}`
-                                                    }
-                                                    hover
+                                    <TableBody>
+
+                                        {reportRows.length === 0 ? (
+
+                                            <TableRow>
+
+                                                <TableCell
+                                                    colSpan={6}
+                                                    align="center"
+                                                    sx={{
+                                                        py: 5,
+                                                        color:
+                                                            "text.secondary"
+                                                    }}
                                                 >
+                                                    No records found for the selected date range.
+                                                </TableCell>
 
-                                                    <TableCell
-                                                        sx={{
-                                                            fontWeight: 600,
-                                                            whiteSpace: "nowrap"
-                                                        }}
-                                                    >
-                                                        {
-                                                            row.receipt_no
+                                            </TableRow>
+
+                                        ) : (
+
+                                            reportRows.map(
+                                                (row, index) => (
+
+                                                    <TableRow
+                                                        key={
+                                                            `${row.offering_id}-${index}`
                                                         }
-                                                    </TableCell>
-
-
-                                                    <TableCell
-                                                        sx={{
-                                                            whiteSpace: "nowrap"
-                                                        }}
+                                                        hover
                                                     >
-                                                        {
-                                                            formatDate(
-                                                                row.receipt_date
-                                                            )
-                                                        }
-                                                    </TableCell>
+
+                                                        <TableCell
+                                                            align="center"
+                                                            sx={{
+                                                                fontWeight: 600,
+                                                                whiteSpace: "nowrap"
+                                                            }}
+                                                        >
+                                                            {index + 1}
+                                                        </TableCell>
 
 
-                                                    <TableCell
-                                                        sx={{
-                                                            minWidth: 170
-                                                        }}
-                                                    >
-                                                        {
-                                                            row.main_devotee ||
-                                                            "-"
-                                                        }
-                                                    </TableCell>
+                                                        <TableCell
+                                                            sx={{
+                                                                minWidth: 220,
+                                                                fontWeight: 600,
+                                                                lineHeight: 1.25
+                                                            }}
+                                                        >
+                                                            <Box>
+                                                                <Typography
+                                                                    variant="body2"
+                                                                    sx={{
+                                                                        fontWeight: 700,
+                                                                        lineHeight: 1.25
+                                                                    }}
+                                                                >
+                                                                    {
+                                                                        row.offering_name ||
+                                                                        "-"
+                                                                    }
+                                                                </Typography>
+
+                                                                {
+                                                                    row.offering_name_ml ? (
+                                                                        <Typography
+                                                                            variant="body2"
+                                                                            sx={{
+                                                                                mt: 0.25,
+                                                                                color: "text.secondary",
+                                                                                fontSize: "0.82rem",
+                                                                                lineHeight: 1.25
+                                                                            }}
+                                                                        >
+                                                                            {
+                                                                                row.offering_name_ml
+                                                                            }
+                                                                        </Typography>
+                                                                    ) : null
+                                                                }
+                                                            </Box>
+                                                        </TableCell>
 
 
-                                                    <TableCell
-                                                        sx={{
-                                                            minWidth: 170
-                                                        }}
-                                                    >
-                                                        {
-                                                            row.beneficiary_name ||
-                                                            "-"
-                                                        }
-                                                    </TableCell>
+                                                        <TableCell
+                                                            sx={{
+                                                                minWidth: 160
+                                                            }}
+                                                        >
+                                                            {
+                                                                row.category_name ||
+                                                                "-"
+                                                            }
+                                                        </TableCell>
 
 
-                                                    <TableCell
-                                                        sx={{
-                                                            minWidth: 150
-                                                        }}
-                                                    >
-                                                        {
-                                                            row.offering_name ||
-                                                            "-"
-                                                        }
-                                                    </TableCell>
+                                                        <TableCell
+                                                            align="right"
+                                                            sx={{
+                                                                whiteSpace: "nowrap"
+                                                            }}
+                                                        >
+                                                            {
+                                                                Number(
+                                                                    row.receipt_count ||
+                                                                    0
+                                                                )
+                                                            }
+                                                        </TableCell>
 
 
-                                                    <TableCell
-                                                        sx={{
-                                                            minWidth: 130
-                                                        }}
-                                                    >
-                                                        {
-                                                            row.category_name ||
-                                                            "-"
-                                                        }
-                                                    </TableCell>
+                                                        <TableCell
+                                                            align="right"
+                                                            sx={{
+                                                                whiteSpace: "nowrap"
+                                                            }}
+                                                        >
+                                                            {
+                                                                Number(
+                                                                    row.total_quantity ||
+                                                                    0
+                                                                )
+                                                            }
+                                                        </TableCell>
 
 
-                                                    <TableCell
-                                                        align="right"
-                                                        sx={{
-                                                            whiteSpace:
-                                                                "nowrap"
-                                                        }}
-                                                    >
-                                                        {
-                                                            Number(
-                                                                row.quantity ||
-                                                                0
-                                                            )
-                                                        }
-                                                    </TableCell>
+                                                        <TableCell
+                                                            align="right"
+                                                            sx={{
+                                                                fontWeight: 700,
+                                                                whiteSpace: "nowrap"
+                                                            }}
+                                                        >
+                                                            {
+                                                                formatCurrency(
+                                                                    row.total_collection
+                                                                )
+                                                            }
+                                                        </TableCell>
 
+                                                    </TableRow>
 
-                                                    <TableCell
-                                                        align="right"
-                                                        sx={{
-                                                            whiteSpace:
-                                                                "nowrap"
-                                                        }}
-                                                    >
-                                                        {
-                                                            formatCurrency(
-                                                                row.rate
-                                                            )
-                                                        }
-                                                    </TableCell>
-
-
-                                                    <TableCell
-                                                        align="right"
-                                                        sx={{
-                                                            fontWeight:
-                                                                600,
-
-                                                            whiteSpace:
-                                                                "nowrap"
-                                                        }}
-                                                    >
-                                                        {
-                                                            formatCurrency(
-                                                                row.item_amount
-                                                            )
-                                                        }
-                                                    </TableCell>
-
-
-                                                    <TableCell
-                                                        sx={{
-                                                            whiteSpace:
-                                                                "nowrap"
-                                                        }}
-                                                    >
-                                                        {
-                                                            row.payment_mode ||
-                                                            "-"
-                                                        }
-                                                    </TableCell>
-
-
-                                                    <TableCell
-                                                        sx={{
-                                                            whiteSpace:
-                                                                "nowrap"
-                                                        }}
-                                                    >
-                                                        {
-                                                            row.status_name ||
-                                                            "-"
-                                                        }
-                                                    </TableCell>
-
-
-                                                    <TableCell
-                                                        sx={{
-                                                            whiteSpace:
-                                                                "nowrap"
-                                                        }}
-                                                    >
-                                                        {
-                                                            row.created_by_name ||
-                                                            "-"
-                                                        }
-                                                    </TableCell>
-
-                                                </TableRow>
-
+                                                )
                                             )
-                                        )
 
-                                    )}
+                                        )}
 
-                                </TableBody>
+                                    </TableBody>
 
-                            </Table>
+                                </Table>
+
+                            ) : (
+
+                                <Table
+                                    stickyHeader
+                                    size="small"
+                                    sx={{
+                                        minWidth: 1520,
+                                        tableLayout: "auto"
+                                    }}
+                                >
+
+                                    <TableHead>
+
+                                        <TableRow>
+
+                                            <TableCell
+                                                align="center"
+                                                sx={{
+                                                    width: 70,
+                                                    minWidth: 70,
+                                                    fontWeight: 700,
+                                                    color: "#FFFFFF",
+                                                    backgroundColor: "#8B0000",
+                                                    whiteSpace: "nowrap",
+                                                    px: 1.5,
+                                                    py: 1.2
+                                                }}
+                                            >
+                                                S.No.
+                                            </TableCell>
+
+
+                                            <TableCell
+                                                sx={{
+                                                    width: 120,
+                                                    minWidth: 120,
+                                                    fontWeight: 700,
+                                                    color: "#FFFFFF",
+                                                    backgroundColor: "#8B0000",
+                                                    whiteSpace: "nowrap",
+                                                    px: 1.5,
+                                                    py: 1.2
+                                                }}
+                                            >
+                                                Receipt No
+                                            </TableCell>
+
+
+                                            <TableCell
+                                                sx={{
+                                                    width: 105,
+                                                    minWidth: 105,
+                                                    fontWeight: 700,
+                                                    color: "#FFFFFF",
+                                                    backgroundColor: "#8B0000",
+                                                    whiteSpace: "nowrap",
+                                                    px: 1.5,
+                                                    py: 1.2
+                                                }}
+                                            >
+                                                Date
+                                            </TableCell>
+
+
+                                            <TableCell
+                                                sx={{
+                                                    width: 170,
+                                                    minWidth: 170,
+                                                    fontWeight: 700,
+                                                    color: "#FFFFFF",
+                                                    backgroundColor: "#8B0000",
+                                                    whiteSpace: "nowrap",
+                                                    px: 1.5,
+                                                    py: 1.2
+                                                }}
+                                            >
+                                                Main Devotee
+                                            </TableCell>
+
+
+                                            <TableCell
+                                                sx={{
+                                                    width: 170,
+                                                    minWidth: 170,
+                                                    fontWeight: 700,
+                                                    color: "#FFFFFF",
+                                                    backgroundColor: "#8B0000",
+                                                    whiteSpace: "nowrap",
+                                                    px: 1.5,
+                                                    py: 1.2
+                                                }}
+                                            >
+                                                Beneficiary
+                                            </TableCell>
+
+
+                                            <TableCell
+                                                sx={{
+                                                    width: 150,
+                                                    minWidth: 150,
+                                                    fontWeight: 700,
+                                                    color: "#FFFFFF",
+                                                    backgroundColor: "#8B0000",
+                                                    whiteSpace: "nowrap",
+                                                    px: 1.5,
+                                                    py: 1.2
+                                                }}
+                                            >
+                                                Offering
+                                            </TableCell>
+
+
+                                            <TableCell
+                                                sx={{
+                                                    width: 130,
+                                                    minWidth: 130,
+                                                    fontWeight: 700,
+                                                    color: "#FFFFFF",
+                                                    backgroundColor: "#8B0000",
+                                                    whiteSpace: "nowrap",
+                                                    px: 1.5,
+                                                    py: 1.2
+                                                }}
+                                            >
+                                                Category
+                                            </TableCell>
+
+
+                                            <TableCell
+                                                align="right"
+                                                sx={{
+                                                    width: 65,
+                                                    minWidth: 65,
+                                                    fontWeight: 700,
+                                                    color: "#FFFFFF",
+                                                    backgroundColor: "#8B0000",
+                                                    whiteSpace: "nowrap",
+                                                    px: 1.5,
+                                                    py: 1.2
+                                                }}
+                                            >
+                                                Qty
+                                            </TableCell>
+
+
+                                            <TableCell
+                                                align="right"
+                                                sx={{
+                                                    width: 105,
+                                                    minWidth: 105,
+                                                    fontWeight: 700,
+                                                    color: "#FFFFFF",
+                                                    backgroundColor: "#8B0000",
+                                                    whiteSpace: "nowrap",
+                                                    px: 1.5,
+                                                    py: 1.2
+                                                }}
+                                            >
+                                                Rate
+                                            </TableCell>
+
+
+                                            <TableCell
+                                                align="right"
+                                                sx={{
+                                                    width: 115,
+                                                    minWidth: 115,
+                                                    fontWeight: 700,
+                                                    color: "#FFFFFF",
+                                                    backgroundColor: "#8B0000",
+                                                    whiteSpace: "nowrap",
+                                                    px: 1.5,
+                                                    py: 1.2
+                                                }}
+                                            >
+                                                Amount
+                                            </TableCell>
+
+
+                                            <TableCell
+                                                sx={{
+                                                    width: 130,
+                                                    minWidth: 130,
+                                                    fontWeight: 700,
+                                                    color: "#FFFFFF",
+                                                    backgroundColor: "#8B0000",
+                                                    whiteSpace: "nowrap",
+                                                    px: 1.5,
+                                                    py: 1.2
+                                                }}
+                                            >
+                                                Payment Mode
+                                            </TableCell>
+
+
+                                            <TableCell
+                                                sx={{
+                                                    width: 105,
+                                                    minWidth: 105,
+                                                    fontWeight: 700,
+                                                    color: "#FFFFFF",
+                                                    backgroundColor: "#8B0000",
+                                                    whiteSpace: "nowrap",
+                                                    px: 1.5,
+                                                    py: 1.2
+                                                }}
+                                            >
+                                                Status
+                                            </TableCell>
+
+
+                                            <TableCell
+                                                sx={{
+                                                    width: 145,
+                                                    minWidth: 145,
+                                                    fontWeight: 700,
+                                                    color: "#FFFFFF",
+                                                    backgroundColor: "#8B0000",
+                                                    whiteSpace: "nowrap",
+                                                    px: 1.5,
+                                                    py: 1.2
+                                                }}
+                                            >
+                                                Created By
+                                            </TableCell>
+
+                                        </TableRow>
+
+                                    </TableHead>
+
+
+                                    <TableBody>
+
+                                        {reportRows.length === 0 ? (
+
+                                            <TableRow>
+
+                                                <TableCell
+                                                    colSpan={13}
+                                                    align="center"
+                                                    sx={{
+                                                        py: 5,
+                                                        color:
+                                                            "text.secondary"
+                                                    }}
+                                                >
+                                                    No records found for the selected date range.
+                                                </TableCell>
+
+                                            </TableRow>
+
+                                        ) : (
+
+                                            reportRows.map(
+                                                (row, index) => (
+
+                                                    <TableRow
+                                                        key={
+                                                            `${row.receipt_id}-${index}`
+                                                        }
+                                                        hover
+                                                    >
+
+                                                        <TableCell
+                                                            align="center"
+                                                            sx={{
+                                                                fontWeight: 600,
+                                                                whiteSpace: "nowrap"
+                                                            }}
+                                                        >
+                                                            {index + 1}
+                                                        </TableCell>
+
+
+                                                        <TableCell
+                                                            sx={{
+                                                                fontWeight: 600,
+                                                                whiteSpace: "nowrap"
+                                                            }}
+                                                        >
+                                                            {
+                                                                row.receipt_no
+                                                            }
+                                                        </TableCell>
+
+
+                                                        <TableCell
+                                                            sx={{
+                                                                whiteSpace: "nowrap"
+                                                            }}
+                                                        >
+                                                            {
+                                                                formatDate(
+                                                                    row.receipt_date
+                                                                )
+                                                            }
+                                                        </TableCell>
+
+
+                                                        <TableCell
+                                                            sx={{
+                                                                minWidth: 170
+                                                            }}
+                                                        >
+                                                            {
+                                                                row.main_devotee ||
+                                                                "-"
+                                                            }
+                                                        </TableCell>
+
+
+                                                        <TableCell
+                                                            sx={{
+                                                                minWidth: 170
+                                                            }}
+                                                        >
+                                                            {
+                                                                row.beneficiary_name ||
+                                                                "-"
+                                                            }
+                                                        </TableCell>
+
+
+                                                        <TableCell
+                                                            sx={{
+                                                                minWidth: 150
+                                                            }}
+                                                        >
+                                                            {
+                                                                row.offering_name ||
+                                                                "-"
+                                                            }
+                                                        </TableCell>
+
+
+                                                        <TableCell
+                                                            sx={{
+                                                                minWidth: 130
+                                                            }}
+                                                        >
+                                                            {
+                                                                row.category_name ||
+                                                                "-"
+                                                            }
+                                                        </TableCell>
+
+
+                                                        <TableCell
+                                                            align="right"
+                                                            sx={{
+                                                                whiteSpace:
+                                                                    "nowrap"
+                                                            }}
+                                                        >
+                                                            {
+                                                                Number(
+                                                                    row.quantity ||
+                                                                    0
+                                                                )
+                                                            }
+                                                        </TableCell>
+
+
+                                                        <TableCell
+                                                            align="right"
+                                                            sx={{
+                                                                whiteSpace:
+                                                                    "nowrap"
+                                                            }}
+                                                        >
+                                                            {
+                                                                formatCurrency(
+                                                                    row.rate
+                                                                )
+                                                            }
+                                                        </TableCell>
+
+
+                                                        <TableCell
+                                                            align="right"
+                                                            sx={{
+                                                                fontWeight:
+                                                                    600,
+
+                                                                whiteSpace:
+                                                                    "nowrap"
+                                                            }}
+                                                        >
+                                                            {
+                                                                formatCurrency(
+                                                                    row.item_amount
+                                                                )
+                                                            }
+                                                        </TableCell>
+
+
+                                                        <TableCell
+                                                            sx={{
+                                                                whiteSpace:
+                                                                    "nowrap"
+                                                            }}
+                                                        >
+                                                            {
+                                                                row.payment_mode ||
+                                                                "-"
+                                                            }
+                                                        </TableCell>
+
+
+                                                        <TableCell
+                                                            sx={{
+                                                                whiteSpace:
+                                                                    "nowrap"
+                                                            }}
+                                                        >
+                                                            {
+                                                                row.status_name ||
+                                                                "-"
+                                                            }
+                                                        </TableCell>
+
+
+                                                        <TableCell
+                                                            sx={{
+                                                                whiteSpace:
+                                                                    "nowrap"
+                                                            }}
+                                                        >
+                                                            {
+                                                                row.created_by_name ||
+                                                                "-"
+                                                            }
+                                                        </TableCell>
+
+                                                    </TableRow>
+
+                                                )
+                                            )
+
+                                        )}
+
+                                    </TableBody>
+
+                                </Table>
+
+                            )}
 
                         </TableContainer>
 
