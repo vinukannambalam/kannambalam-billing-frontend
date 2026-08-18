@@ -24,6 +24,10 @@ import Gallery from "./pages/Administration/Gallery";
 import GalleryCategories from "./pages/Administration/GalleryCategories";
 import GalleryAlbums from "./pages/Administration/GalleryAlbums";
 import GalleryPhotos from "./pages/Administration/GalleryPhotos";
+import DonationCategories from "./pages/Masters/DonationCategories";
+import NewDonation from "./pages/Billing/NewDonation";
+import DonationSearch from "./pages/Billing/DonationSearch";
+import DonationView from "./pages/Billing/DonationView";
 function App() {
     return (
         <BrowserRouter>
@@ -79,6 +83,21 @@ function App() {
                             element={<ReceiptView />}
                         />
 
+                        <Route
+                            path="donations"
+                            element={<DonationSearch />}
+                        />
+
+                        <Route
+                            path="donations/new"
+                            element={<NewDonation />}
+                        />
+
+                        <Route
+                            path="donations/:id"
+                            element={<DonationView />}
+                        />
+
 
                         {/* ==================================================
                             ADMINISTRATOR ONLY
@@ -129,6 +148,11 @@ function App() {
                             <Route
                                 path="masters/payment-modes"
                                 element={<PaymentModes />}
+                            />
+
+                            <Route
+                                path="masters/donation-categories"
+                                element={<DonationCategories />}
                             />
 
 

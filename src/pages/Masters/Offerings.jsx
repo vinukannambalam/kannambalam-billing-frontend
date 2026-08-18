@@ -44,7 +44,10 @@ export default function Offerings() {
     const [rate, setRate] =
         useState("");
 
-    const [editableAmount, setEditableAmount] =
+    
+    const [remarks, setRemarks] =
+        useState("");
+const [editableAmount, setEditableAmount] =
         useState(false);
 
     const [requiresNakshathra, setRequiresNakshathra] =
@@ -253,7 +256,10 @@ export default function Offerings() {
                 amount:
                     Number(rate),
 
-                editable_amount:
+                
+                remarks:
+                    remarks.trim() || null,
+editable_amount:
                     editableAmount,
 
                 requires_nakshathra:
@@ -411,7 +417,12 @@ export default function Offerings() {
         );
 
 
-        setEditableAmount(
+        
+
+        setRemarks(
+            item.remarks || ""
+        );
+setEditableAmount(
             item.editable_amount === true
         );
 
@@ -529,7 +540,9 @@ export default function Offerings() {
 
         setRate("");
 
-        setEditableAmount(false);
+        
+        setRemarks("");
+setEditableAmount(false);
 
         setRequiresNakshathra(false);
 
@@ -539,24 +552,16 @@ export default function Offerings() {
 
 
     // ==================================================
-    // CATEGORY NAME
+    // BILINGUAL CATEGORY NAME
     // ==================================================
 
-    const getCategoryName = (
-        categoryIdValue
-    ) => {
+    const getCategory = (categoryIdValue) => {
 
-        const category =
-            categories.find(
-                (item) =>
-                    String(item.id) ===
-                    String(categoryIdValue)
-            );
-
-
-        return category
-            ? category.category_name
-            : "-";
+        return categories.find(
+            (item) =>
+                String(item.id) ===
+                String(categoryIdValue)
+        );
 
     };
 
@@ -721,6 +726,25 @@ export default function Offerings() {
                     />
 
 
+                    {/* REMARKS */}
+
+                    <TextField
+                        label="Remarks"
+                        value={remarks}
+                        onChange={(e) =>
+                            setRemarks(e.target.value)
+                        }
+                        fullWidth
+                        multiline
+                        minRows={2}
+                        maxRows={4}
+                        sx={{
+                            width: { xs: "100%", sm: "100%" },
+                            maxWidth: "100%"
+                        }}
+                    />
+
+
                     {/* EDITABLE AMOUNT */}
 
                     <Box
@@ -871,205 +895,273 @@ export default function Offerings() {
                 <Box
                     sx={{
                         width: "100%",
-                        overflowX: "auto",
-                        WebkitOverflowScrolling: "touch"
+                        maxHeight: 430,
+                        overflow: "auto",
+                        WebkitOverflowScrolling: "touch",
+                        border: "1px solid",
+                        borderColor: "divider",
+                        borderRadius: 1
                     }}
                 >
                     <Table
                         size="small"
+                        stickyHeader
                         sx={{
-                            minWidth: { xs: 900, sm: 980 },
+                            minWidth: { xs: 820, sm: 880, md: 930 },
+                            tableLayout: "auto",
                             "& .MuiTableCell-root": {
-                                px: { xs: 1, sm: 1.5, md: 2 },
-                                py: { xs: 1.25, sm: 1.5 }
+                                px: { xs: 1, sm: 1.25, md: 1.5 },
+                                py: { xs: 0.9, sm: 1.05 },
+                                verticalAlign: "top"
+                            },
+                            "& .MuiTableCell-head": {
+                                fontWeight: 600,
+                                whiteSpace: "nowrap",
+                                backgroundColor: "background.paper"
                             }
                         }}
                     >
 
-                    <TableHead>
-
-                        <TableRow>
-
-                            <TableCell>
-                                #
-                            </TableCell>
-
-                            <TableCell>
-                                Offering
-                            </TableCell>
-
-                            <TableCell>
-                                Malayalam
-                            </TableCell>
-
-                            <TableCell>
-                                Category
-                            </TableCell>
-
-                            <TableCell align="right">
-                                Rate
-                            </TableCell>
-
-                            <TableCell align="center">
-                                Editable
-                            </TableCell>
-
-                            <TableCell align="center">
-                                Nakshathra
-                            </TableCell>
-
-                            <TableCell align="center">
-                                Active
-                            </TableCell>
-
-                            <TableCell align="center">
-                                Actions
-                            </TableCell>
-
-                        </TableRow>
-
-                    </TableHead>
-
-
-                    <TableBody>
-
-                        {offerings.map(
-                            (item, index) => (
-
-                                <TableRow
-                                    key={
-                                        item.id
-                                    }
-                                >
-
-                                    <TableCell>
-                                        {index + 1}
-                                    </TableCell>
-
-
-                                    <TableCell>
-                                        {
-                                            item.offering_name
-                                        }
-                                    </TableCell>
-
-
-                                    <TableCell>
-                                        {
-                                            item.offering_name_ml ||
-                                            "-"
-                                        }
-                                    </TableCell>
-
-
-                                    <TableCell>
-                                        {
-                                            getCategoryName(
-                                                item.category_id
-                                            )
-                                        }
-                                    </TableCell>
-
-
-                                    <TableCell align="right">
-
-                                        ₹
-                                        {Number(
-                                            item.amount || 0
-                                        ).toFixed(2)}
-
-                                    </TableCell>
-
-
-                                    <TableCell align="center">
-
-                                        {item.editable_amount
-                                            ? "Yes"
-                                            : "No"}
-
-                                    </TableCell>
-
-
-                                    <TableCell align="center">
-
-                                        {item.requires_nakshathra
-                                            ? "Yes"
-                                            : "No"}
-
-                                    </TableCell>
-
-
-                                    <TableCell align="center">
-
-                                        {item.active
-                                            ? "Yes"
-                                            : "No"}
-
-                                    </TableCell>
-
-
-                                    <TableCell align="center">
-
-                                        <IconButton
-                                            color="primary"
-                                            onClick={() =>
-                                                editOffering(
-                                                    item
-                                                )
-                                            }
-                                            disabled={
-                                                loading
-                                            }
-                                        >
-
-                                            <EditIcon />
-
-                                        </IconButton>
-
-
-                                        <IconButton
-                                            color="error"
-                                            onClick={() =>
-                                                deleteOffering(
-                                                    item.id
-                                                )
-                                            }
-                                            disabled={
-                                                loading
-                                            }
-                                        >
-
-                                            <DeleteIcon />
-
-                                        </IconButton>
-
-                                    </TableCell>
-
-                                </TableRow>
-
-                            )
-                        )}
-
-
-                        {offerings.length === 0 && (
+                        <TableHead>
 
                             <TableRow>
 
                                 <TableCell
-                                    colSpan={9}
-                                    align="center"
+                                    sx={{ width: 45 }}
                                 >
-                                    No offerings found.
+                                    #
+                                </TableCell>
+
+                                <TableCell
+                                    sx={{ minWidth: 190 }}
+                                >
+                                    Offering
+                                </TableCell>
+
+                                <TableCell
+                                    sx={{ minWidth: 145 }}
+                                >
+                                    Category
+                                </TableCell>
+
+                                <TableCell
+                                    align="right"
+                                    sx={{ width: 90 }}
+                                >
+                                    Rate
+                                </TableCell>
+
+                                <TableCell
+                                    sx={{ minWidth: 260 }}
+                                >
+                                    Remarks
+                                </TableCell>
+
+                                <TableCell
+                                    align="center"
+                                    sx={{ width: 85 }}
+                                >
+                                    Editable
+                                </TableCell>
+
+                                <TableCell
+                                    align="center"
+                                    sx={{ width: 95 }}
+                                >
+                                    Nakshathra
+                                </TableCell>
+
+                                <TableCell
+                                    align="center"
+                                    sx={{ width: 70 }}
+                                >
+                                    Active
+                                </TableCell>
+
+                                <TableCell
+                                    align="center"
+                                    sx={{ width: 90 }}
+                                >
+                                    Actions
                                 </TableCell>
 
                             </TableRow>
 
-                        )}
+                        </TableHead>
 
-                    </TableBody>
+
+                        <TableBody>
+
+                            {offerings.map(
+                                (item, index) => {
+
+                                    const category =
+                                        getCategory(
+                                            item.category_id
+                                        );
+
+                                    return (
+
+                                        <TableRow
+                                            key={item.id}
+                                            hover
+                                        >
+
+                                            <TableCell>
+                                                {index + 1}
+                                            </TableCell>
+
+                                            <TableCell>
+                                                <Box
+                                                    sx={{
+                                                        lineHeight: 1.25
+                                                    }}
+                                                >
+                                                    <Typography
+                                                        variant="body2"
+                                                        sx={{
+                                                            fontWeight: 600
+                                                        }}
+                                                    >
+                                                        {item.offering_name}
+                                                    </Typography>
+
+                                                    <Typography
+                                                        variant="body2"
+                                                        sx={{
+                                                            color: "text.secondary",
+                                                            mt: 0.25
+                                                        }}
+                                                    >
+                                                        {item.offering_name_ml || "-"}
+                                                    </Typography>
+                                                </Box>
+                                            </TableCell>
+
+                                            <TableCell>
+                                                <Box
+                                                    sx={{
+                                                        lineHeight: 1.25
+                                                    }}
+                                                >
+                                                    <Typography
+                                                        variant="body2"
+                                                        sx={{
+                                                            fontWeight: 500
+                                                        }}
+                                                    >
+                                                        {category?.category_name || "-"}
+                                                    </Typography>
+
+                                                    <Typography
+                                                        variant="body2"
+                                                        sx={{
+                                                            color: "text.secondary",
+                                                            mt: 0.25
+                                                        }}
+                                                    >
+                                                        {category?.category_name_ml || "-"}
+                                                    </Typography>
+                                                </Box>
+                                            </TableCell>
+
+                                            <TableCell
+                                                align="right"
+                                                sx={{
+                                                    whiteSpace: "nowrap",
+                                                    fontWeight: 600
+                                                }}
+                                            >
+                                                ₹{Number(
+                                                    item.amount || 0
+                                                ).toFixed(2)}
+                                            </TableCell>
+
+                                            <TableCell
+                                                title={item.remarks || ""}
+                                                sx={{
+                                                    minWidth: 260,
+                                                    maxWidth: 420,
+                                                    whiteSpace: "normal",
+                                                    wordBreak: "break-word",
+                                                    color: item.remarks
+                                                        ? "text.primary"
+                                                        : "text.secondary"
+                                                }}
+                                            >
+                                                {item.remarks || "-"}
+                                            </TableCell>
+
+                                            <TableCell align="center">
+                                                {item.editable_amount
+                                                    ? "Yes"
+                                                    : "No"}
+                                            </TableCell>
+
+                                            <TableCell align="center">
+                                                {item.requires_nakshathra
+                                                    ? "Yes"
+                                                    : "No"}
+                                            </TableCell>
+
+                                            <TableCell align="center">
+                                                {item.active
+                                                    ? "Yes"
+                                                    : "No"}
+                                            </TableCell>
+
+                                            <TableCell align="center">
+
+                                                <IconButton
+                                                    color="primary"
+                                                    size="small"
+                                                    onClick={() =>
+                                                        editOffering(item)
+                                                    }
+                                                    disabled={loading}
+                                                >
+                                                    <EditIcon fontSize="small" />
+                                                </IconButton>
+
+                                                <IconButton
+                                                    color="error"
+                                                    size="small"
+                                                    onClick={() =>
+                                                        deleteOffering(item.id)
+                                                    }
+                                                    disabled={loading}
+                                                >
+                                                    <DeleteIcon fontSize="small" />
+                                                </IconButton>
+
+                                            </TableCell>
+
+                                        </TableRow>
+                                    );
+                                }
+                            )}
+
+
+                            {offerings.length === 0 && (
+
+                                <TableRow>
+
+                                    <TableCell
+                                        colSpan={9}
+                                        align="center"
+                                    >
+                                        No offerings found.
+                                    </TableCell>
+
+                                </TableRow>
+
+                            )}
+
+                        </TableBody>
 
                     </Table>
                 </Box>
+
 
             </Paper>
 

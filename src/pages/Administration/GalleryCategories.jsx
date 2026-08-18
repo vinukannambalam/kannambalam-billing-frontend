@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 
 import {
@@ -21,12 +21,21 @@ import {
 } from "@mui/material";
 
 import AddIcon from "@mui/icons-material/Add";
+import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
 import EditIcon from "@mui/icons-material/Edit";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import PhotoLibraryIcon from "@mui/icons-material/PhotoLibrary";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 import { apiFetch } from "../../api/api";
+
+const MAX_CATEGORY_IMAGE_SIZE = 2 * 1024 * 1024;
+
+const ALLOWED_CATEGORY_IMAGE_TYPES = [
+    "image/jpeg",
+    "image/png",
+    "image/webp"
+];
 
 
 export default function GalleryCategories() {
@@ -61,6 +70,9 @@ export default function GalleryCategories() {
     const [editingCategory, setEditingCategory] =
         useState(null);
 
+    const categoryImageInputRef =
+        useRef(null);
+
 
     // =====================================================
     // FORM
@@ -77,8 +89,10 @@ export default function GalleryCategories() {
 
     const [descriptionMl, setDescriptionMl] =
         useState("");
+    const [categoryImageFile, setCategoryImageFile] =
+        useState(null);
 
-    const [icon, setIcon] =
+    const [categoryImagePreview, setCategoryImagePreview] =
         useState("");
 
     const [active, setActive] =
@@ -185,7 +199,8 @@ export default function GalleryCategories() {
         setNameMl("");
         setDescriptionEn("");
         setDescriptionMl("");
-        setIcon("");
+        setCategoryImageFile(null);
+        setCategoryImagePreview("");
         setActive(true);
 
         setError("");
@@ -216,7 +231,8 @@ export default function GalleryCategories() {
         setNameMl("");
         setDescriptionEn("");
         setDescriptionMl("");
-        setIcon("");
+        setCategoryImageFile(null);
+        setCategoryImagePreview("");
         setActive(true);
 
         setError("");
@@ -249,9 +265,9 @@ export default function GalleryCategories() {
         setDescriptionMl(
             category.description_ml || ""
         );
-
-        setIcon(
-            category.icon || ""
+        setCategoryImageFile(null);
+        setCategoryImagePreview(
+            category.image_url || ""
         );
 
         setActive(
@@ -262,6 +278,51 @@ export default function GalleryCategories() {
         setMessage("");
 
         setDialogOpen(true);
+    };
+
+
+    // =====================================================
+    // CATEGORY IMAGE
+    // =====================================================
+
+    const handleCategoryImageChange = (event) => {
+
+        const file = event.target.files?.[0];
+
+        event.target.value = "";
+
+        if (!file) {
+            return;
+        }
+
+        if (!ALLOWED_CATEGORY_IMAGE_TYPES.includes(file.type)) {
+            setError(
+                "Only JPG, JPEG, PNG and WebP images are allowed"
+            );
+            return;
+        }
+
+        if (file.size > MAX_CATEGORY_IMAGE_SIZE) {
+            setError(
+                "Category image must be 2 MB or smaller"
+            );
+            return;
+        }
+
+        setError("");
+        setCategoryImageFile(file);
+        setCategoryImagePreview(
+            URL.createObjectURL(file)
+        );
+    };
+
+    const clearCategoryImage = () => {
+
+        setCategoryImageFile(null);
+
+        setCategoryImagePreview(
+            editingCategory?.image_url || ""
+        );
     };
 
 
@@ -356,8 +417,9 @@ export default function GalleryCategories() {
                                 null,
 
                             icon:
-                                icon.trim() ||
-                                null,
+                                isEdit
+                                    ? editingCategory?.icon || null
+                                    : null,
 
                             display_order:
                                 displayOrder,
@@ -380,8 +442,50 @@ export default function GalleryCategories() {
                 );
             }
 
+            const savedCategory = data;
+
+            // If this was a new category, keep the returned ID so that
+            // a retry after an image-upload failure updates the same
+            // category instead of creating a duplicate.
+            if (!isEdit) {
+                setEditingCategory(savedCategory);
+            }
+
+            // Upload a new image only when the user selected one.
+            if (categoryImageFile) {
+
+                const formData = new FormData();
+
+                formData.append(
+                    "image",
+                    categoryImageFile
+                );
+
+                const imageResponse =
+                    await apiFetch(
+                        `/api/admin/gallery/categories/${savedCategory.id}/image`,
+                        {
+                            method: "POST",
+                            body: formData
+                        }
+                    );
+
+                const imageData =
+                    await imageResponse.json();
+
+                if (!imageResponse.ok) {
+                    throw new Error(
+                        imageData.error ||
+                        "Category image upload failed"
+                    );
+                }
+            }
+
 
             setDialogOpen(false);
+
+            setCategoryImageFile(null);
+            setCategoryImagePreview("");
 
             await loadCategories();
 
@@ -1418,18 +1522,126 @@ export default function GalleryCategories() {
                     />
 
 
-                    <TextField
-                        fullWidth
-                        label="Icon"
-                        value={icon}
-                        onChange={(event) =>
-                            setIcon(
-                                event.target.value
-                            )
-                        }
-                        margin="normal"
-                        helperText="Optional icon identifier"
-                    />
+                    {/* CATEGORY IMAGE */}
+
+                    <Box
+                        sx={{
+                            mt: 2,
+                            p: 1.5,
+                            border: "1px solid #e0e0e0",
+                            borderRadius: 1.5
+                        }}
+                    >
+
+                        <Box
+                            sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "space-between",
+                                gap: 2,
+                                flexWrap: "wrap"
+                            }}
+                        >
+
+                            <Box>
+                                <Typography
+                                    sx={{
+                                        fontWeight: 600
+                                    }}
+                                >
+                                    Category Image
+                                </Typography>
+
+                                <Typography
+                                    variant="caption"
+                                    color="text.secondary"
+                                >
+                                    JPG, JPEG, PNG or WebP. Maximum 2 MB.
+                                </Typography>
+                            </Box>
+
+                            <Button
+                                variant="outlined"
+                                startIcon={<AddPhotoAlternateIcon />}
+                                onClick={() =>
+                                    categoryImageInputRef.current?.click()
+                                }
+                                disabled={saving}
+                                sx={{
+                                    color: "#990000",
+                                    borderColor: "#990000",
+                                    "&:hover": {
+                                        borderColor: "#7d0000",
+                                        backgroundColor: "#fff5f5"
+                                    }
+                                }}
+                            >
+                                {categoryImageFile
+                                    ? "Change Image"
+                                    : categoryImagePreview
+                                        ? "Replace Image"
+                                        : "Select Image"}
+                            </Button>
+
+                            <input
+                                ref={categoryImageInputRef}
+                                type="file"
+                                hidden
+                                accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                                onChange={handleCategoryImageChange}
+                            />
+
+                        </Box>
+
+                        {categoryImagePreview && (
+                            <Box
+                                sx={{
+                                    mt: 1.5,
+                                    position: "relative",
+                                    width: "100%",
+                                    maxWidth: 260,
+                                    height: 140,
+                                    borderRadius: 1.5,
+                                    overflow: "hidden",
+                                    border: "1px solid #ddd",
+                                    backgroundColor: "#fafafa"
+                                }}
+                            >
+                                <Box
+                                    component="img"
+                                    src={categoryImagePreview}
+                                    alt="Category preview"
+                                    sx={{
+                                        width: "100%",
+                                        height: "100%",
+                                        objectFit: "cover",
+                                        display: "block"
+                                    }}
+                                />
+
+                                {categoryImageFile && (
+                                    <Button
+                                        size="small"
+                                        onClick={clearCategoryImage}
+                                        disabled={saving}
+                                        sx={{
+                                            position: "absolute",
+                                            right: 6,
+                                            bottom: 6,
+                                            backgroundColor: "rgba(255,255,255,0.92)",
+                                            color: "#990000",
+                                            "&:hover": {
+                                                backgroundColor: "#ffffff"
+                                            }
+                                        }}
+                                    >
+                                        Cancel New Image
+                                    </Button>
+                                )}
+                            </Box>
+                        )}
+
+                    </Box>
 
 
                     <FormControlLabel

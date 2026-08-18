@@ -22,6 +22,7 @@ import {
 
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import PhotoLibraryIcon from "@mui/icons-material/PhotoLibrary";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
@@ -54,6 +55,11 @@ export default function Gallery() {
     const [descriptionMl, setDescriptionMl] = useState("");
     const [icon, setIcon] = useState("");
     const [active, setActive] = useState(true);
+
+    const [categoryImageFile, setCategoryImageFile] =
+        useState(null);
+    const [categoryImagePreview, setCategoryImagePreview] =
+        useState("");
 
     // =====================================================
     // DRAGGING
@@ -112,7 +118,53 @@ export default function Gallery() {
                 )
                 : [];
 
-            setCategories(sorted);
+            // Load active album/photo counts from the public gallery API.
+            // The admin category list remains the source of truth, so
+            // inactive categories are still shown in Administration.
+            let categoriesWithCounts = sorted;
+
+            try {
+                const countResponse = await apiFetch(
+                    "/api/gallery/categories"
+                );
+
+                if (countResponse.ok) {
+                    const countData = await countResponse.json();
+
+                    if (Array.isArray(countData)) {
+                        const countMap = new Map(
+                            countData.map((item) => [
+                                Number(item.id),
+                                {
+                                    album_count:
+                                        Number(item.album_count || 0),
+                                    photo_count:
+                                        Number(item.photo_count || 0)
+                                }
+                            ])
+                        );
+
+                        categoriesWithCounts = sorted.map(
+                            (category) => ({
+                                ...category,
+                                album_count:
+                                    countMap.get(Number(category.id))
+                                        ?.album_count ?? 0,
+                                photo_count:
+                                    countMap.get(Number(category.id))
+                                        ?.photo_count ?? 0
+                            })
+                        );
+                    }
+                }
+            } catch (countError) {
+                console.warn(
+                    "Gallery category count loading error:",
+                    countError
+                );
+            }
+
+            setCategories(categoriesWithCounts);
         } catch (err) {
             console.error(
                 "Gallery category loading error:",
@@ -133,6 +185,94 @@ export default function Gallery() {
     }, []);
 
     // =====================================================
+    // CATEGORY IMAGE
+    // =====================================================
+
+    const clearCategoryImage = () => {
+        if (
+            categoryImagePreview &&
+            categoryImagePreview.startsWith("blob:")
+        ) {
+            URL.revokeObjectURL(categoryImagePreview);
+        }
+
+        setCategoryImageFile(null);
+        setCategoryImagePreview("");
+    };
+
+    const handleCategoryImageChange = (event) => {
+        const file = event.target.files?.[0];
+
+        if (!file) {
+            return;
+        }
+
+        const allowedTypes = [
+            "image/jpeg",
+            "image/png",
+            "image/webp"
+        ];
+
+        if (!allowedTypes.includes(file.type)) {
+            setError(
+                "Category image must be JPG, PNG or WebP"
+            );
+            event.target.value = "";
+            return;
+        }
+
+        if (file.size > 2 * 1024 * 1024) {
+            setError(
+                "Category image must be 2 MB or smaller"
+            );
+            event.target.value = "";
+            return;
+        }
+
+        if (
+            categoryImagePreview &&
+            categoryImagePreview.startsWith("blob:")
+        ) {
+            URL.revokeObjectURL(categoryImagePreview);
+        }
+
+        setCategoryImageFile(file);
+        setCategoryImagePreview(
+            URL.createObjectURL(file)
+        );
+        setError("");
+    };
+
+    const uploadCategoryImage = async (categoryId) => {
+        if (!categoryImageFile) {
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append(
+            "image",
+            categoryImageFile
+        );
+
+        const response = await apiFetch(
+            `/api/admin/gallery/categories/${categoryId}/image`,
+            {
+                method: "POST",
+                body: formData
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data.error ||
+                "Category image upload failed"
+            );
+        }
+    };
+
+    // =====================================================
     // OPEN NEW CATEGORY
     // =====================================================
 
@@ -144,6 +284,7 @@ export default function Gallery() {
         setDescriptionMl("");
         setIcon("");
         setActive(true);
+        clearCategoryImage();
 
         setError("");
         setMessage("");
@@ -163,6 +304,10 @@ export default function Gallery() {
         setDescriptionMl(category.description_ml || "");
         setIcon(category.icon || "");
         setActive(category.active !== false);
+        setCategoryImageFile(null);
+        setCategoryImagePreview(
+            category.image_url || ""
+        );
 
         setError("");
         setMessage("");
@@ -179,6 +324,7 @@ export default function Gallery() {
         }
 
         setDialogOpen(false);
+        clearCategoryImage();
     };
 
     // =====================================================
@@ -245,7 +391,24 @@ export default function Gallery() {
                 );
             }
 
+            const savedCategoryId =
+                data.id ||
+                data.category?.id ||
+                (isEdit
+                    ? editingCategory.id
+                    : null);
+
+            if (
+                categoryImageFile &&
+                savedCategoryId
+            ) {
+                await uploadCategoryImage(
+                    savedCategoryId
+                );
+            }
+
             setDialogOpen(false);
+            clearCategoryImage();
             await loadCategories();
 
             setMessage(
@@ -327,6 +490,62 @@ export default function Gallery() {
                 "Unable to update category"
             );
         } finally {
+            setSaving(false);
+        }
+    };
+
+    // =====================================================
+    // DELETE CATEGORY
+    // =====================================================
+
+    const handleDeleteCategory = async (category) => {
+        const confirmed = window.confirm(
+            `Delete the category "${category.name_en}" permanently?\n\nThis can only be done when the category has no albums.`
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            setSaving(true);
+            setError("");
+            setMessage("");
+
+            const response = await apiFetch(
+                `/api/admin/gallery/categories/${category.id}`,
+                {
+                    method: "DELETE"
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.error ||
+                    "Unable to delete category"
+                );
+            }
+
+            await loadCategories();
+
+            setMessage(
+                "Category deleted successfully"
+            );
+        }
+        catch (err) {
+            console.error(
+                "Delete category error:",
+                err
+            );
+
+            setError(
+                err.message ||
+                "Unable to delete category"
+            );
+        }
+        finally {
             setSaving(false);
         }
     };
@@ -797,7 +1016,7 @@ export default function Gallery() {
                                         />
                                     </Box>
 
-                                    {/* ICON */}
+                                    {/* CATEGORY IMAGE / FALLBACK ICON */}
 
                                     <Box
                                         sx={{
@@ -812,11 +1031,31 @@ export default function Gallery() {
                                             alignItems:
                                                 "center",
                                             justifyContent:
-                                                "center"
+                                                "center",
+                                            overflow: "hidden"
                                         }}
                                     >
-                                        {getCategoryIcon(
-                                            category
+                                        {category.image_url ? (
+                                            <Box
+                                                component="img"
+                                                src={
+                                                    category.image_url
+                                                }
+                                                alt={
+                                                    category.name_en ||
+                                                    "Gallery category"
+                                                }
+                                                sx={{
+                                                    width: "100%",
+                                                    height: "100%",
+                                                    objectFit:
+                                                        "cover"
+                                                }}
+                                            />
+                                        ) : (
+                                            getCategoryIcon(
+                                                category
+                                            )
                                         )}
                                     </Box>
 
@@ -845,12 +1084,42 @@ export default function Gallery() {
                                                     color: "#990000",
                                                     fontSize: "1rem",
                                                     fontWeight: 500,
-                                                    mb: 1.25
+                                                    mb: 0.75
                                                 }}
                                             >
                                                 {category.name_ml}
                                             </Typography>
                                         )}
+
+                                        {/* ACTIVE ALBUM / PHOTO COUNTS */}
+
+                                        <Typography
+                                            variant="body2"
+                                            sx={{
+                                                color: "#666",
+                                                fontWeight: 600,
+                                                fontSize: "0.82rem",
+                                                mb: 0.9
+                                            }}
+                                        >
+                                            {Number(
+                                                category.album_count || 0
+                                            )}{" "}
+                                            {Number(
+                                                category.album_count || 0
+                                            ) === 1
+                                                ? "Album"
+                                                : "Albums"}
+                                            {" · "}
+                                            {Number(
+                                                category.photo_count || 0
+                                            )}{" "}
+                                            {Number(
+                                                category.photo_count || 0
+                                            ) === 1
+                                                ? "Photo"
+                                                : "Photos"}
+                                        </Typography>
 
                                         {category.description_en && (
                                             <Typography
@@ -944,6 +1213,25 @@ export default function Gallery() {
                                             }}
                                         >
                                             <EditIcon
+                                                fontSize="small"
+                                            />
+                                        </IconButton>
+
+                                        <IconButton
+                                            size="small"
+                                            onClick={(event) => {
+                                                event.stopPropagation();
+                                                handleDeleteCategory(
+                                                    category
+                                                );
+                                            }}
+                                            disabled={saving}
+                                            sx={{
+                                                color: "#990000"
+                                            }}
+                                            title="Delete category"
+                                        >
+                                            <DeleteIcon
                                                 fontSize="small"
                                             />
                                         </IconButton>
@@ -1089,18 +1377,80 @@ export default function Gallery() {
                         margin="normal"
                     />
 
-                    <TextField
-                        fullWidth
-                        label="Icon"
-                        value={icon}
-                        onChange={(event) =>
-                            setIcon(
-                                event.target.value
-                            )
-                        }
-                        margin="normal"
-                        helperText="Optional icon identifier"
-                    />
+                    {/* CATEGORY IMAGE */}
+
+                    <Box
+                        sx={{
+                            mt: 2,
+                            mb: 1
+                        }}
+                    >
+                        <Typography
+                            variant="subtitle2"
+                            sx={{
+                                fontWeight: 700,
+                                mb: 1
+                            }}
+                        >
+                            Category Image
+                        </Typography>
+
+                        {categoryImagePreview && (
+                            <Box
+                                sx={{
+                                    width: 120,
+                                    height: 90,
+                                    borderRadius: 2,
+                                    overflow: "hidden",
+                                    border:
+                                        "1px solid #dddddd",
+                                    mb: 1.5
+                                }}
+                            >
+                                <Box
+                                    component="img"
+                                    src={
+                                        categoryImagePreview
+                                    }
+                                    alt="Category preview"
+                                    sx={{
+                                        width: "100%",
+                                        height: "100%",
+                                        objectFit: "cover"
+                                    }}
+                                />
+                            </Box>
+                        )}
+
+                        <Button
+                            variant="outlined"
+                            component="label"
+                            disabled={saving}
+                        >
+                            {categoryImageFile
+                                ? "Choose Different Image"
+                                : "Choose Image"}
+                            <input
+                                type="file"
+                                hidden
+                                accept="image/jpeg,image/png,image/webp"
+                                onChange={
+                                    handleCategoryImageChange
+                                }
+                            />
+                        </Button>
+
+                        <Typography
+                            variant="caption"
+                            display="block"
+                            sx={{
+                                color: "text.secondary",
+                                mt: 0.75
+                            }}
+                        >
+                            JPG, PNG or WebP · Maximum 2 MB
+                        </Typography>
+                    </Box>
 
                     <FormControlLabel
                         control={

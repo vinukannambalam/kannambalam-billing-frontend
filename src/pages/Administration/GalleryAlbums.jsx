@@ -22,6 +22,7 @@ import {
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 import PhotoLibraryIcon from "@mui/icons-material/PhotoLibrary";
 import EventIcon from "@mui/icons-material/Event";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
@@ -61,6 +62,9 @@ export default function GalleryAlbums() {
         useState(false);
 
     const [editingAlbum, setEditingAlbum] =
+        useState(null);
+
+    const [deleteAlbum, setDeleteAlbum] =
         useState(null);
 
     const [saving, setSaving] =
@@ -412,6 +416,56 @@ export default function GalleryAlbums() {
 
         }
 
+    };
+
+
+    // =====================================================
+    // DELETE ALBUM
+    // =====================================================
+
+    const confirmDeleteAlbum = async () => {
+        if (!deleteAlbum) {
+            return;
+        }
+
+        try {
+            setSaving(true);
+            setError("");
+
+            const response = await apiFetch(
+                `/api/admin/gallery/albums/${deleteAlbum.id}`,
+                {
+                    method: "DELETE"
+                }
+            );
+
+            const data =
+                await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.error ||
+                    "Failed to delete gallery album"
+                );
+            }
+
+            setDeleteAlbum(null);
+            await loadData();
+        }
+        catch (err) {
+            console.error(
+                "Gallery album deletion error:",
+                err
+            );
+
+            setError(
+                err.message ||
+                "Failed to delete gallery album"
+            );
+        }
+        finally {
+            setSaving(false);
+        }
     };
 
 
@@ -1049,7 +1103,26 @@ export default function GalleryAlbums() {
                                             }}
                                         >
 
-                                            <PhotoLibraryIcon />
+                                            {album.cover_image_url ? (
+                                                <Box
+                                                    component="img"
+                                                    src={
+                                                        album.cover_image_url
+                                                    }
+                                                    alt={
+                                                        album.title_en ||
+                                                        "Album cover"
+                                                    }
+                                                    sx={{
+                                                        width: "100%",
+                                                        height: "100%",
+                                                        objectFit: "cover",
+                                                        display: "block"
+                                                    }}
+                                                />
+                                            ) : (
+                                                <PhotoLibraryIcon />
+                                            )}
 
                                         </Box>
 
@@ -1199,6 +1272,24 @@ export default function GalleryAlbums() {
                                             Edit
                                         </Button>
 
+                                        <IconButton
+                                            size="small"
+                                            onClick={() =>
+                                                setDeleteAlbum(
+                                                    album
+                                                )
+                                            }
+                                            disabled={saving}
+                                            sx={{
+                                                color: "#990000"
+                                            }}
+                                            title="Delete album"
+                                        >
+                                            <DeleteIcon
+                                                fontSize="small"
+                                            />
+                                        </IconButton>
+
                                     </Box>
 
 
@@ -1234,6 +1325,81 @@ export default function GalleryAlbums() {
                 </Box>
 
             )}
+
+
+            {/* =================================================
+                DELETE ALBUM CONFIRMATION
+            ================================================= */}
+
+            <Dialog
+                open={Boolean(deleteAlbum)}
+                onClose={() => {
+                    if (!saving) {
+                        setDeleteAlbum(null);
+                    }
+                }}
+                maxWidth="xs"
+                fullWidth
+            >
+                <DialogTitle>
+                    Delete Album?
+                </DialogTitle>
+
+                <DialogContent>
+                    <Typography>
+                        Are you sure you want to delete{" "}
+                        <strong>
+                            {deleteAlbum?.title_en ||
+                                "this album"}
+                        </strong>
+                        ?
+                    </Typography>
+
+                    <Typography
+                        variant="body2"
+                        sx={{
+                            mt: 1,
+                            color: "text.secondary"
+                        }}
+                    >
+                        An album can only be deleted when it
+                        contains no photos. If it contains
+                        photos, delete those photos first.
+                    </Typography>
+                </DialogContent>
+
+                <DialogActions
+                    sx={{
+                        px: 3,
+                        pb: 2
+                    }}
+                >
+                    <Button
+                        onClick={() =>
+                            setDeleteAlbum(null)
+                        }
+                        disabled={saving}
+                    >
+                        Cancel
+                    </Button>
+
+                    <Button
+                        variant="contained"
+                        onClick={confirmDeleteAlbum}
+                        disabled={saving}
+                        sx={{
+                            backgroundColor: "#990000",
+                            "&:hover": {
+                                backgroundColor: "#7d0000"
+                            }
+                        }}
+                    >
+                        {saving
+                            ? "Deleting..."
+                            : "Delete Album"}
+                    </Button>
+                </DialogActions>
+            </Dialog>
 
 
             {/* =================================================
