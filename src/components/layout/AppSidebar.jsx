@@ -20,6 +20,7 @@ import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import PaymentsIcon from "@mui/icons-material/Payments";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
+import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import ReceiptIcon from "@mui/icons-material/Receipt";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
@@ -120,10 +121,13 @@ export default function AppSidebar({
     const [mastersOpen, setMastersOpen] =
         useState(true);
 
-    const [reportsOpen, setReportsOpen] =
-        useState(true);
+    const [billingReportsOpen, setBillingReportsOpen] =
+        useState(false);
 
     const [accountsOpen, setAccountsOpen] =
+        useState(false);
+
+    const [accountsReportsOpen, setAccountsReportsOpen] =
         useState(false);
 
     const [purchaseOpen, setPurchaseOpen] =
@@ -251,7 +255,8 @@ export default function AppSidebar({
                     boxSizing: "border-box",
                     borderRight: "1px solid #e0e0e0",
                     backgroundColor: "#FFFFFF",
-                    overflowX: "hidden"
+                    overflowX: "hidden",
+                    overflowY: "auto"
                 }
             }}
         >
@@ -462,180 +467,156 @@ export default function AppSidebar({
                             </ListItemButton>
 
 
+
+
+                            {/* BILLING REPORTS - ADMIN ONLY */}
+
+                            {isAdmin && (
+                                <>
+                                    <ListItemButton
+                                        onClick={() =>
+                                            setBillingReportsOpen(
+                                                !billingReportsOpen
+                                            )
+                                        }
+                                        sx={{
+                                            ...sectionHeadingStyle,
+                                            ml: 2,
+                                            mr: 1,
+                                            minHeight: 42
+                                        }}
+                                    >
+                                        <ListItemIcon
+                                            sx={{
+                                                minWidth: 38,
+                                                color: colors.headingText
+                                            }}
+                                        >
+                                            <AssessmentIcon />
+                                        </ListItemIcon>
+
+                                        <ListItemText
+                                            primary="Billing Reports"
+                                            primaryTypographyProps={{
+                                                fontWeight: 700
+                                            }}
+                                        />
+
+                                        {billingReportsOpen ? (
+                                            <ExpandLessIcon />
+                                        ) : (
+                                            <ExpandMoreIcon />
+                                        )}
+                                    </ListItemButton>
+
+                                    <Collapse
+                                        in={billingReportsOpen}
+                                        timeout="auto"
+                                        unmountOnExit
+                                    >
+                                        <List disablePadding>
+                                            <ListItemButton
+                                                component={NavLink}
+                                                onClick={onMobileClose}
+                                                to="/reports"
+                                                sx={{
+                                                    ...menuItemStyle,
+                                                    ml: 4,
+                                                    mr: 1
+                                                }}
+                                            >
+                                                <ListItemIcon>
+                                                    <AssessmentIcon />
+                                                </ListItemIcon>
+                                                <ListItemText primary="View Reports" />
+                                            </ListItemButton>
+
+                                            <ListItemButton
+                                                component={NavLink}
+                                                onClick={onMobileClose}
+                                                to="/reports/charts"
+                                                sx={{
+                                                    ...menuItemStyle,
+                                                    ml: 4,
+                                                    mr: 1
+                                                }}
+                                            >
+                                                <ListItemIcon>
+                                                    <AssessmentIcon />
+                                                </ListItemIcon>
+                                                <ListItemText primary="View Charts" />
+                                            </ListItemButton>
+                                        </List>
+                                    </Collapse>
+                                </>
+                            )}
                         </List>
 
                     </Collapse>
 
 
                     {/* ==================================================
-                        REPORTS - ADMIN ONLY
+                        ACCOUNTS
+                        View Vouchers is available to all logged-in users.
+                        Master, Journal Voucher and Reports are admin-only.
                     ================================================== */}
 
-                    {isAdmin && (
+                    <ListItemButton
+                        onClick={() =>
+                            setAccountsOpen(
+                                !accountsOpen
+                            )
+                        }
+                        sx={sectionHeadingStyle}
+                    >
+                        <ListItemIcon
+                            sx={{
+                                minWidth: 38,
+                                color: colors.headingText
+                            }}
+                        >
+                            <AccountBalanceIcon />
+                        </ListItemIcon>
 
-                        <>
+                        <ListItemText
+                            primary="Accounts"
+                            primaryTypographyProps={{
+                                fontWeight: 700
+                            }}
+                        />
 
-                            <ListItemButton
-                                onClick={() =>
-                                    setReportsOpen(
-                                        !reportsOpen
-                                    )
-                                }
-                                sx={sectionHeadingStyle}
-                            >
+                        {accountsOpen ? (
+                            <ExpandLessIcon />
+                        ) : (
+                            <ExpandMoreIcon />
+                        )}
+                    </ListItemButton>
 
-                                <ListItemIcon
-                                    sx={{
-                                        minWidth: 38,
-                                        color:
-                                            colors.headingText
-                                    }}
-                                >
-
-                                    <AssessmentIcon />
-
-                                </ListItemIcon>
-
-
-                                <ListItemText
-                                    primary="Billing Reports"
-                                    primaryTypographyProps={{
-                                        fontWeight: 700
-                                    }}
-                                />
-
-
-                                {reportsOpen ? (
-
-                                    <ExpandLessIcon />
-
-                                ) : (
-
-                                    <ExpandMoreIcon />
-
-                                )}
-
-                            </ListItemButton>
-
-
-                            <Collapse
-                                in={reportsOpen}
-                                timeout="auto"
-                                unmountOnExit
-                            >
-
-                                <List
-                                    disablePadding
-                                >
-
-                                    <ListItemButton
-                                        component={NavLink}
-                                        onClick={onMobileClose}
-                                        to="/reports"
-                                        sx={{
-
-                                            ...menuItemStyle,
-                                            ml: 2,
-                                            mr: 1
-                                        }}
-                                    >
-
-                                        <ListItemIcon>
-
-                                            <AssessmentIcon />
-
-                                        </ListItemIcon>
-
-
-                                        <ListItemText
-                                            primary="View Reports"
-                                        />
-
-                                    </ListItemButton>
-
-                                    <ListItemButton
-                                        component={NavLink}
-                                        onClick={onMobileClose}
-                                        to="/reports/charts"
-                                        sx={{
-                                            ...menuItemStyle,
-                                            ml: 2,
-                                            mr: 1
-                                        }}
-                                    >
-
-                                        <ListItemIcon>
-
-                                            <AssessmentIcon />
-
-                                        </ListItemIcon>
-
-
-                                        <ListItemText
-                                            primary="View Charts"
-                                        />
-
-                                    </ListItemButton>
-
-                                </List>
-
-                            </Collapse>
-
-                        </>
-
-                    )}
-
-
-                    {/* ==================================================
-                        ACCOUNTS - ADMIN ONLY
-                    ================================================== */}
-
-                    {isAdmin && (
-
-                        <>
+                    <Collapse
+                        in={accountsOpen}
+                        timeout="auto"
+                        unmountOnExit
+                    >
+                        <List disablePadding>
 
                             <ListItemButton
-                                onClick={() =>
-                                    setAccountsOpen(
-                                        !accountsOpen
-                                    )
-                                }
-                                sx={sectionHeadingStyle}
+                                component={NavLink}
+                                onClick={onMobileClose}
+                                to="/accounts/vouchers"
+                                sx={{
+                                    ...menuItemStyle,
+                                    ml: 2,
+                                    mr: 1
+                                }}
                             >
-
-                                <ListItemIcon
-                                    sx={{
-                                        minWidth: 38,
-                                        color:
-                                            colors.headingText
-                                    }}
-                                >
-                                    <AccountBalanceIcon />
+                                <ListItemIcon>
+                                    <SearchIcon />
                                 </ListItemIcon>
-
-                                <ListItemText
-                                    primary="Accounts"
-                                    primaryTypographyProps={{
-                                        fontWeight: 700
-                                    }}
-                                />
-
-                                {accountsOpen ? (
-                                    <ExpandLessIcon />
-                                ) : (
-                                    <ExpandMoreIcon />
-                                )}
-
+                                <ListItemText primary="View Vouchers" />
                             </ListItemButton>
 
-                            <Collapse
-                                in={accountsOpen}
-                                timeout="auto"
-                                unmountOnExit
-                            >
-
-                                <List disablePadding>
-
+                            {isAdmin && (
+                                <>
                                     <ListItemButton
                                         component={NavLink}
                                         onClick={onMobileClose}
@@ -649,10 +630,7 @@ export default function AppSidebar({
                                         <ListItemIcon>
                                             <AccountBalanceIcon />
                                         </ListItemIcon>
-
-                                        <ListItemText
-                                            primary="Accounts Master"
-                                        />
+                                        <ListItemText primary="Accounts Master" />
                                     </ListItemButton>
 
                                     <ListItemButton
@@ -668,56 +646,135 @@ export default function AppSidebar({
                                         <ListItemIcon>
                                             <ReceiptIcon />
                                         </ListItemIcon>
-
-                                        <ListItemText
-                                            primary="Journal Voucher"
-                                        />
+                                        <ListItemText primary="Journal Voucher" />
                                     </ListItemButton>
 
-                                </List>
+                                    <ListItemButton
+                                        onClick={() =>
+                                            setAccountsReportsOpen(
+                                                !accountsReportsOpen
+                                            )
+                                        }
+                                        sx={{
+                                            ...sectionHeadingStyle,
+                                            ml: 2,
+                                            mr: 1,
+                                            minHeight: 42
+                                        }}
+                                    >
+                                        <ListItemIcon
+                                            sx={{
+                                                minWidth: 38,
+                                                color: colors.headingText
+                                            }}
+                                        >
+                                            <AssessmentIcon />
+                                        </ListItemIcon>
 
-                            </Collapse>
+                                        <ListItemText
+                                            primary="Accounts Reports"
+                                            primaryTypographyProps={{
+                                                fontWeight: 700
+                                            }}
+                                        />
 
+                                        {accountsReportsOpen ? (
+                                            <ExpandLessIcon />
+                                        ) : (
+                                            <ExpandMoreIcon />
+                                        )}
+                                    </ListItemButton>
 
+                                    <Collapse
+                                        in={accountsReportsOpen}
+                                        timeout="auto"
+                                        unmountOnExit
+                                    >
+                                        <List disablePadding>
+                                            <ListItemButton
+                                                component={NavLink}
+                                                onClick={onMobileClose}
+                                                to="/accounts/reports/day-book"
+                                                sx={{
+                                                    ...menuItemStyle,
+                                                    ml: 4,
+                                                    mr: 1
+                                                }}
+                                            >
+                                                <ListItemIcon>
+                                                    <ReceiptLongIcon />
+                                                </ListItemIcon>
+                                                <ListItemText primary="Day Book" />
+                                            </ListItemButton>
 
+                                            <ListItemButton
+                                                component={NavLink}
+                                                onClick={onMobileClose}
+                                                to="/accounts/reports/ledger"
+                                                sx={{
+                                                    ...menuItemStyle,
+                                                    ml: 4,
+                                                    mr: 1
+                                                }}
+                                            >
+                                                <ListItemIcon>
+                                                    <AccountBalanceWalletIcon />
+                                                </ListItemIcon>
+                                                <ListItemText primary="Ledger" />
+                                            </ListItemButton>
 
-                        </>
+                                            <ListItemButton
+                                                component={NavLink}
+                                                onClick={onMobileClose}
+                                                to="/accounts/reports/trial-balance"
+                                                sx={{
+                                                    ...menuItemStyle,
+                                                    ml: 4,
+                                                    mr: 1
+                                                }}
+                                            >
+                                                <ListItemIcon>
+                                                    <AssessmentIcon />
+                                                </ListItemIcon>
+                                                <ListItemText primary="Trial Balance" />
+                                            </ListItemButton>
 
-                    )}
+                                            <ListItemButton
+                                                disabled
+                                                sx={{
+                                                    ...menuItemStyle,
+                                                    ml: 4,
+                                                    mr: 1,
+                                                    opacity: 0.65
+                                                }}
+                                            >
+                                                <ListItemIcon>
+                                                    <AssessmentIcon />
+                                                </ListItemIcon>
+                                                <ListItemText primary="P&L" />
+                                            </ListItemButton>
 
-                    {/* ==================================================
-                        ACCOUNTS REPORTS - COMING LATER
-                    ================================================== */}
+                                            <ListItemButton
+                                                disabled
+                                                sx={{
+                                                    ...menuItemStyle,
+                                                    ml: 4,
+                                                    mr: 1,
+                                                    opacity: 0.65
+                                                }}
+                                            >
+                                                <ListItemIcon>
+                                                    <AssessmentIcon />
+                                                </ListItemIcon>
+                                                <ListItemText primary="Balance Sheet" />
+                                            </ListItemButton>
+                                        </List>
+                                    </Collapse>
+                                </>
+                            )}
 
-                    {isAdmin && (
-
-                        <ListItemButton
-                            disabled
-                            sx={{
-                                ...sectionHeadingStyle,
-                                opacity: 0.65
-                            }}
-                        >
-
-                            <ListItemIcon
-                                sx={{
-                                    minWidth: 38,
-                                    color: colors.headingText
-                                }}
-                            >
-                                <AssessmentIcon />
-                            </ListItemIcon>
-
-                            <ListItemText
-                                primary="Accounts Reports"
-                                primaryTypographyProps={{
-                                    fontWeight: 700
-                                }}
-                            />
-
-                        </ListItemButton>
-
-                    )}
+                        </List>
+                    </Collapse>
 
                     {/* ==================================================
                         PURCHASE - ADMIN ONLY
@@ -828,45 +885,38 @@ export default function AppSidebar({
                                         />
                                     </ListItemButton>
 
+
+
+                                    <ListItemButton
+                                        disabled
+                                        sx={{
+                                            ...sectionHeadingStyle,
+                                            ml: 2,
+                                            mr: 1,
+                                            minHeight: 42,
+                                            opacity: 0.65
+                                        }}
+                                    >
+                                        <ListItemIcon
+                                            sx={{
+                                                minWidth: 38,
+                                                color: colors.headingText
+                                            }}
+                                        >
+                                            <AssessmentIcon />
+                                        </ListItemIcon>
+                                        <ListItemText
+                                            primary="Purchase Reports"
+                                            primaryTypographyProps={{
+                                                fontWeight: 700
+                                            }}
+                                        />
+                                    </ListItemButton>
                                 </List>
 
                             </Collapse>
 
                         </>
-
-                    )}
-
-                    {/* ==================================================
-                        PURCHASE REPORTS - COMING LATER
-                    ================================================== */}
-
-                    {isAdmin && (
-
-                        <ListItemButton
-                            disabled
-                            sx={{
-                                ...sectionHeadingStyle,
-                                opacity: 0.65
-                            }}
-                        >
-
-                            <ListItemIcon
-                                sx={{
-                                    minWidth: 38,
-                                    color: colors.headingText
-                                }}
-                            >
-                                <AssessmentIcon />
-                            </ListItemIcon>
-
-                            <ListItemText
-                                primary="Purchase Reports"
-                                primaryTypographyProps={{
-                                    fontWeight: 700
-                                }}
-                            />
-
-                        </ListItemButton>
 
                     )}
 

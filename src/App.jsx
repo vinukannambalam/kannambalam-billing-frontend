@@ -16,6 +16,9 @@ import Users from "./pages/Administration/Users";
 import Settings from "./pages/Administration/Settings";
 import AccountsMaster from "./pages/Accounts/AccountsMaster";
 import JournalVoucher from "./pages/Accounts/JournalVoucher";
+import Ledger from "./pages/Accounts/Ledger";
+import VoucherList from "./pages/Accounts/VoucherList";
+import VoucherView from "./pages/Accounts/VoucherView";
 import SupplierMaster from "./pages/Purchase/SupplierMaster";
 import PurchaseInvoice from "./pages/Purchase/PurchaseInvoice";
 import PhysicalStockEntry from "./pages/Purchase/PhysicalStockEntry";
@@ -159,6 +162,21 @@ function App() {
                             {/* ==============================
                                 ACCOUNTS
                             ============================== */}
+
+                            <Route
+                                path="accounts/vouchers"
+                                element={<VoucherList />}
+                            />
+
+                            <Route
+                                path="accounts/vouchers/:id"
+                                element={<VoucherView />}
+                            />
+
+                            <Route
+                                path="accounts/reports/ledger"
+                                element={<Ledger />}
+                            />
 
                             <Route
                                 path="accounts/master"

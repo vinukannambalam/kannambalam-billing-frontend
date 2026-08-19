@@ -6,6 +6,8 @@ import PaymentsIcon from "@mui/icons-material/Payments";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import VolunteerActivismIcon from "@mui/icons-material/VolunteerActivism";
 import SearchIcon from "@mui/icons-material/Search";
+import ReceiptIcon from "@mui/icons-material/Receipt";
+import AssessmentIcon from "@mui/icons-material/Assessment";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import PhotoLibraryIcon from "@mui/icons-material/PhotoLibrary";
 import { useEffect, useState } from "react";
@@ -179,53 +181,79 @@ export default function Dashboard() {
             ? `${chartPadX},${chartHeight - chartPadY} ${linePoints} ${chartWidth - chartPadX},${chartHeight - chartPadY}`
             : "";
 
-    const quickActions = [
-        {
-            title: "New Receipt",
-            subtitle: "Create an offering receipt",
-            icon: <ReceiptLongIcon />,
-            path: "/billing/new",
-            primary: true
-        },
-        {
-            title: "View Receipts",
-            subtitle: "Search and view receipts",
-            icon: <SearchIcon />,
-            path: "/receipts"
-        },
-        {
-            title: "New Donation",
-            subtitle: "Record an offline donation",
-            icon: <VolunteerActivismIcon />,
-            path: "/donations/new"
-        },
-        {
-            title: "View Donations",
-            subtitle: "Search donation records",
-            icon: <PaymentsIcon />,
-            path: "/donations"
-        },
-		
-		...(isAdmin
-            ? [
-		
-        {
-            title: "Manage Devotees",
-            subtitle: "View and manage devotee records",
-            icon: <PeopleAltIcon />,
-            path: "/masters/devotees"
-        },
-        
-                {
-                    title: "Gallery Management",
-                    subtitle: "Manage gallery categories and albums",
-                    icon: <PhotoLibraryIcon />,
-                    path: "/gallery",
-                    adminOnly: true
-                }
-            ]
-            : [])
-    ];
+    const quickActions = isAdmin
+        ? [
+              {
+                  title: "Trial Balance",
+                  subtitle: "View account balances",
+                  icon: <AssessmentIcon />,
+                  path: "/accounts/reports/trial-balance"
+              },
+              {
+                  title: "Day Book",
+                  subtitle: "View vouchers by date",
+                  icon: <ReceiptLongIcon />,
+                  path: "/accounts/reports/day-book"
+              },
+              {
+                  title: "Account Ledger",
+                  subtitle: "View account transactions",
+                  icon: <AccountBalanceWalletIcon />,
+                  path: "/accounts/reports/ledger"
+              },
+              {
+                  title: "New Journal Voucher",
+                  subtitle: "Create an accounting voucher",
+                  icon: <ReceiptIcon />,
+                  path: "/accounts/journal-voucher",
+                  primary: true
+              },
+              {
+                  title: "View Vouchers",
+                  subtitle: "Search accounting vouchers",
+                  icon: <SearchIcon />,
+                  path: "/accounts/vouchers"
+              },
+              {
+                  title: "Gallery Management",
+                  subtitle: "Manage gallery categories and albums",
+                  icon: <PhotoLibraryIcon />,
+                  path: "/gallery"
+              }
+          ]
+        : [
+              {
+                  title: "New Receipt",
+                  subtitle: "Create an offering receipt",
+                  icon: <ReceiptLongIcon />,
+                  path: "/billing/new",
+                  primary: true
+              },
+              {
+                  title: "View Receipts",
+                  subtitle: "Search and view receipts",
+                  icon: <SearchIcon />,
+                  path: "/receipts"
+              },
+              {
+                  title: "New Donation",
+                  subtitle: "Record an offline donation",
+                  icon: <VolunteerActivismIcon />,
+                  path: "/donations/new"
+              },
+              {
+                  title: "View Donations",
+                  subtitle: "Search donation records",
+                  icon: <PaymentsIcon />,
+                  path: "/donations"
+              },
+              {
+                  title: "View Vouchers",
+                  subtitle: "View accounting vouchers",
+                  icon: <SearchIcon />,
+                  path: "/accounts/vouchers"
+              }
+          ];
 
     return (
         <Box sx={{ pb: 4 }}>
