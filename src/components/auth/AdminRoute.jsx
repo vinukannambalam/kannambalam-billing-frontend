@@ -22,11 +22,27 @@ export default function AdminRoute() {
     }
 
 
-    // Logged in but not Administrator
-    if (
-        !user ||
-        String(user.role).trim().toLowerCase() !== "administrator"
-    ) {
+    // Logged in but without an Administrator/Developer role
+    const legacyRole =
+        String(user?.role || "").trim().toLowerCase();
+
+    const assignedRoles = Array.isArray(user?.roles)
+        ? user.roles.map((item) =>
+            String(item?.role_name || item || "")
+                .trim()
+                .toLowerCase()
+        )
+        : [];
+
+    const canAccessAdministration =
+        legacyRole === "admin" ||
+        legacyRole === "administrator" ||
+        legacyRole === "developer" ||
+        assignedRoles.includes("admin") ||
+        assignedRoles.includes("administrator") ||
+        assignedRoles.includes("developer");
+
+    if (!user || !canAccessAdministration) {
 
         return (
             <Navigate

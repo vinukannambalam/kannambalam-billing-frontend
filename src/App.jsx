@@ -31,6 +31,8 @@ import DonationCategories from "./pages/Masters/DonationCategories";
 import NewDonation from "./pages/Billing/NewDonation";
 import DonationSearch from "./pages/Billing/DonationSearch";
 import DonationView from "./pages/Billing/DonationView";
+import PermissionCatalogue from "./pages/Administration/PermissionCatalogue";
+import Roles from "./pages/Administration/Roles";
 function App() {
     return (
         <BrowserRouter>
@@ -242,6 +244,14 @@ function App() {
                                 path="gallery/albums/:albumId/photos"
                                 element={<GalleryPhotos />}
                             />
+							<Route
+								path="administration/permission-catalogue"
+								element={<PermissionCatalogue />}
+							/>
+								<Route
+									path="administration/roles"
+									element={<Roles />}
+								/>
 
                         </Route>
 

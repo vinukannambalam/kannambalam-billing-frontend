@@ -34,29 +34,19 @@ import PhotoLibraryIcon from "@mui/icons-material/PhotoLibrary";
 
 const drawerWidth = 250;
 
-
 // ==================================================
 // COLORS
 // ==================================================
 
 const colors = {
-
     headingText: "#8B0000",
-
     headingBackground: "#FFF3F3",
-
     headingHover: "#FFE3E3",
-
     activeBackground: "#8B0000",
-
     activeText: "#FFFFFF",
-
     normalText: "#263238",
-
     iconColor: "#8B0000"
-
 };
-
 
 // ==================================================
 // SIDEBAR
@@ -67,8 +57,6 @@ export default function AppSidebar({
     onMobileClose = () => {},
     isMobile = false
 }) {
-
-
     // ==================================================
     // GET CURRENT LOGGED-IN USER
     // ==================================================
@@ -79,23 +67,17 @@ export default function AppSidebar({
     let user = null;
 
     try {
-
         user = storedUser
             ? JSON.parse(storedUser)
             : null;
-
     }
     catch (error) {
-
         console.error(
             "Unable to read logged-in user:",
             error
         );
-
         user = null;
-
     }
-
 
     // ==================================================
     // ADMIN CHECK
@@ -106,10 +88,22 @@ export default function AppSidebar({
             .trim()
             .toLowerCase();
 
-    const isAdmin =
-    userRole === "admin" ||
-    userRole === "administrator";
+    const userRoles = Array.isArray(user?.roles)
+        ? user.roles
+            .map((item) =>
+                String(item?.role_name || item || "")
+                    .trim()
+                    .toLowerCase()
+            )
+        : [];
 
+    const isAdmin =
+        userRole === "admin" ||
+        userRole === "administrator" ||
+        userRole === "developer" ||
+        userRoles.includes("admin") ||
+        userRoles.includes("administrator") ||
+        userRoles.includes("developer");
 
     // ==================================================
     // COLLAPSE STATE
@@ -136,109 +130,71 @@ export default function AppSidebar({
     const [administrationOpen, setAdministrationOpen] =
         useState(true);
 
-
     // ==================================================
     // MENU ITEM STYLE
     // ==================================================
 
     const menuItemStyle = {
-
         minHeight: 46,
-
         px: 2,
-
         mx: 1,
-
         mb: 0.5,
-
         borderRadius: 1.5,
-
         color: colors.normalText,
-
         transition: "all 0.2s ease",
 
         "& .MuiListItemIcon-root": {
-
             minWidth: 38,
-
             color: colors.iconColor
-
         },
 
         "& .MuiListItemText-primary": {
-
             fontSize: 14
-
         },
 
         "&:hover": {
-
             backgroundColor: "#FFF0F0",
-
             color: colors.headingText
-
         },
 
         "&.active": {
-
             backgroundColor:
                 colors.activeBackground,
-
             color:
                 colors.activeText,
-
             fontWeight: 600,
 
             "& .MuiListItemIcon-root": {
-
                 color:
                     colors.activeText
-
             }
-
         }
-
     };
-
 
     // ==================================================
     // SECTION HEADING STYLE
     // ==================================================
 
     const sectionHeadingStyle = {
-
         minHeight: 44,
-
         mx: 1,
-
         my: 0.8,
-
         px: 1.5,
-
         borderRadius: 1.5,
-
         backgroundColor:
             colors.headingBackground,
-
         color:
             colors.headingText,
-
         fontWeight: 700,
-
         transition: "all 0.2s ease",
 
         "&:hover": {
-
             backgroundColor:
                 colors.headingHover
-
         }
-
     };
 
-
     return (
-
         <Drawer
             variant={isMobile ? "temporary" : "permanent"}
             open={isMobile ? mobileOpen : true}
@@ -250,6 +206,7 @@ export default function AppSidebar({
                 width: drawerWidth,
                 flexShrink: 0,
                 display: { xs: "block", md: "block" },
+
                 "& .MuiDrawer-paper": {
                     width: drawerWidth,
                     boxSizing: "border-box",
@@ -260,24 +217,14 @@ export default function AppSidebar({
                 }
             }}
         >
-
-            {/* ==================================================
-                TOP SPACE
-            ================================================== */}
-
             <Toolbar />
-
 
             <Box
                 sx={{
                     py: 1
                 }}
             >
-
-                <List
-                    disablePadding
-                >
-
+                <List disablePadding>
 
                     {/* ==================================================
                         DASHBOARD
@@ -290,13 +237,9 @@ export default function AppSidebar({
                         end
                         sx={menuItemStyle}
                     >
-
                         <ListItemIcon>
-
                             <DashboardIcon />
-
                         </ListItemIcon>
-
 
                         <ListItemText
                             primary="Dashboard"
@@ -305,9 +248,7 @@ export default function AppSidebar({
                                 fontWeight: 500
                             }}
                         />
-
                     </ListItemButton>
-
 
                     {/* ==================================================
                         BILLING
@@ -321,7 +262,6 @@ export default function AppSidebar({
                         }
                         sx={sectionHeadingStyle}
                     >
-
                         <ListItemIcon
                             sx={{
                                 minWidth: 38,
@@ -329,11 +269,8 @@ export default function AppSidebar({
                                     colors.headingText
                             }}
                         >
-
                             <ReceiptLongIcon />
-
                         </ListItemIcon>
-
 
                         <ListItemText
                             primary="Billing"
@@ -342,79 +279,56 @@ export default function AppSidebar({
                             }}
                         />
 
-
                         {billingOpen ? (
-
                             <ExpandLessIcon />
-
                         ) : (
-
                             <ExpandMoreIcon />
-
                         )}
-
                     </ListItemButton>
-
 
                     <Collapse
                         in={billingOpen}
                         timeout="auto"
                         unmountOnExit
                     >
-
-                        <List
-                            disablePadding
-                        >
+                        <List disablePadding>
 
                             <ListItemButton
                                 component={NavLink}
                                 onClick={onMobileClose}
                                 to="/billing/new"
                                 sx={{
-
                                     ...menuItemStyle,
                                     ml: 2,
                                     mr: 1
                                 }}
                             >
-
                                 <ListItemIcon>
-
                                     <AddIcon />
-
                                 </ListItemIcon>
-
 
                                 <ListItemText
                                     primary="New receipt"
                                 />
-
                             </ListItemButton>
-
 
                             <ListItemButton
                                 component={NavLink}
                                 onClick={onMobileClose}
                                 to="/receipts"
                                 sx={{
-
                                     ...menuItemStyle,
                                     ml: 2,
                                     mr: 1
                                 }}
                             >
-
                                 <ListItemIcon>
-
                                     <SearchIcon />
-
                                 </ListItemIcon>
-
 
                                 <ListItemText
                                     primary="View receipts"
                                 />
-
                             </ListItemButton>
 
                             {/* DONATIONS */}
@@ -429,45 +343,34 @@ export default function AppSidebar({
                                     mr: 1
                                 }}
                             >
-
                                 <ListItemIcon>
-
                                     <ReceiptIcon />
-
                                 </ListItemIcon>
 
                                 <ListItemText
                                     primary="New Donation"
                                 />
-
                             </ListItemButton>
-
 
                             <ListItemButton
                                 component={NavLink}
                                 onClick={onMobileClose}
                                 to="/donations"
+								end
                                 sx={{
                                     ...menuItemStyle,
                                     ml: 2,
                                     mr: 1
                                 }}
                             >
-
                                 <ListItemIcon>
-
                                     <SearchIcon />
-
                                 </ListItemIcon>
 
                                 <ListItemText
                                     primary="View Donations"
                                 />
-
                             </ListItemButton>
-
-
-
 
                             {/* BILLING REPORTS - ADMIN ONLY */}
 
@@ -519,6 +422,7 @@ export default function AppSidebar({
                                                 component={NavLink}
                                                 onClick={onMobileClose}
                                                 to="/reports"
+												end
                                                 sx={{
                                                     ...menuItemStyle,
                                                     ml: 4,
@@ -528,7 +432,10 @@ export default function AppSidebar({
                                                 <ListItemIcon>
                                                     <AssessmentIcon />
                                                 </ListItemIcon>
-                                                <ListItemText primary="View Reports" />
+
+                                                <ListItemText
+                                                    primary="View Reports"
+                                                />
                                             </ListItemButton>
 
                                             <ListItemButton
@@ -544,16 +451,17 @@ export default function AppSidebar({
                                                 <ListItemIcon>
                                                     <AssessmentIcon />
                                                 </ListItemIcon>
-                                                <ListItemText primary="View Charts" />
+
+                                                <ListItemText
+                                                    primary="View Charts"
+                                                />
                                             </ListItemButton>
                                         </List>
                                     </Collapse>
                                 </>
                             )}
                         </List>
-
                     </Collapse>
-
 
                     {/* ==================================================
                         ACCOUNTS
@@ -603,6 +511,7 @@ export default function AppSidebar({
                                 component={NavLink}
                                 onClick={onMobileClose}
                                 to="/accounts/vouchers"
+								end
                                 sx={{
                                     ...menuItemStyle,
                                     ml: 2,
@@ -612,7 +521,10 @@ export default function AppSidebar({
                                 <ListItemIcon>
                                     <SearchIcon />
                                 </ListItemIcon>
-                                <ListItemText primary="View Vouchers" />
+
+                                <ListItemText
+                                    primary="View Vouchers"
+                                />
                             </ListItemButton>
 
                             {isAdmin && (
@@ -630,7 +542,10 @@ export default function AppSidebar({
                                         <ListItemIcon>
                                             <AccountBalanceIcon />
                                         </ListItemIcon>
-                                        <ListItemText primary="Accounts Master" />
+
+                                        <ListItemText
+                                            primary="Accounts Master"
+                                        />
                                     </ListItemButton>
 
                                     <ListItemButton
@@ -646,7 +561,10 @@ export default function AppSidebar({
                                         <ListItemIcon>
                                             <ReceiptIcon />
                                         </ListItemIcon>
-                                        <ListItemText primary="Journal Voucher" />
+
+                                        <ListItemText
+                                            primary="Journal Voucher"
+                                        />
                                     </ListItemButton>
 
                                     <ListItemButton
@@ -704,7 +622,10 @@ export default function AppSidebar({
                                                 <ListItemIcon>
                                                     <ReceiptLongIcon />
                                                 </ListItemIcon>
-                                                <ListItemText primary="Day Book" />
+
+                                                <ListItemText
+                                                    primary="Day Book"
+                                                />
                                             </ListItemButton>
 
                                             <ListItemButton
@@ -720,7 +641,10 @@ export default function AppSidebar({
                                                 <ListItemIcon>
                                                     <AccountBalanceWalletIcon />
                                                 </ListItemIcon>
-                                                <ListItemText primary="Ledger" />
+
+                                                <ListItemText
+                                                    primary="Ledger"
+                                                />
                                             </ListItemButton>
 
                                             <ListItemButton
@@ -736,7 +660,10 @@ export default function AppSidebar({
                                                 <ListItemIcon>
                                                     <AssessmentIcon />
                                                 </ListItemIcon>
-                                                <ListItemText primary="Trial Balance" />
+
+                                                <ListItemText
+                                                    primary="Trial Balance"
+                                                />
                                             </ListItemButton>
 
                                             <ListItemButton
@@ -751,7 +678,10 @@ export default function AppSidebar({
                                                 <ListItemIcon>
                                                     <AssessmentIcon />
                                                 </ListItemIcon>
-                                                <ListItemText primary="P&L" />
+
+                                                <ListItemText
+                                                    primary="P&L"
+                                                />
                                             </ListItemButton>
 
                                             <ListItemButton
@@ -766,13 +696,15 @@ export default function AppSidebar({
                                                 <ListItemIcon>
                                                     <AssessmentIcon />
                                                 </ListItemIcon>
-                                                <ListItemText primary="Balance Sheet" />
+
+                                                <ListItemText
+                                                    primary="Balance Sheet"
+                                                />
                                             </ListItemButton>
                                         </List>
                                     </Collapse>
                                 </>
                             )}
-
                         </List>
                     </Collapse>
 
@@ -781,11 +713,7 @@ export default function AppSidebar({
                     ================================================== */}
 
                     {isAdmin && (
-
                         <>
-
-
-
                             <ListItemButton
                                 onClick={() =>
                                     setPurchaseOpen(
@@ -794,7 +722,6 @@ export default function AppSidebar({
                                 }
                                 sx={sectionHeadingStyle}
                             >
-
                                 <ListItemIcon
                                     sx={{
                                         minWidth: 38,
@@ -817,7 +744,6 @@ export default function AppSidebar({
                                 ) : (
                                     <ExpandMoreIcon />
                                 )}
-
                             </ListItemButton>
 
                             <Collapse
@@ -825,7 +751,6 @@ export default function AppSidebar({
                                 timeout="auto"
                                 unmountOnExit
                             >
-
                                 <List disablePadding>
 
                                     <ListItemButton
@@ -885,8 +810,6 @@ export default function AppSidebar({
                                         />
                                     </ListItemButton>
 
-
-
                                     <ListItemButton
                                         disabled
                                         sx={{
@@ -905,6 +828,7 @@ export default function AppSidebar({
                                         >
                                             <AssessmentIcon />
                                         </ListItemIcon>
+
                                         <ListItemText
                                             primary="Purchase Reports"
                                             primaryTypographyProps={{
@@ -913,11 +837,8 @@ export default function AppSidebar({
                                         />
                                     </ListItemButton>
                                 </List>
-
                             </Collapse>
-
                         </>
-
                     )}
 
                     {/* ==================================================
@@ -925,9 +846,7 @@ export default function AppSidebar({
                     ================================================== */}
 
                     {isAdmin && (
-
                         <>
-
                             <ListItemButton
                                 onClick={() =>
                                     setMastersOpen(
@@ -936,7 +855,6 @@ export default function AppSidebar({
                                 }
                                 sx={sectionHeadingStyle}
                             >
-
                                 <ListItemIcon
                                     sx={{
                                         minWidth: 38,
@@ -944,11 +862,8 @@ export default function AppSidebar({
                                             colors.headingText
                                     }}
                                 >
-
                                     <CategoryIcon />
-
                                 </ListItemIcon>
-
 
                                 <ListItemText
                                     primary="Masters"
@@ -957,29 +872,19 @@ export default function AppSidebar({
                                     }}
                                 />
 
-
                                 {mastersOpen ? (
-
                                     <ExpandLessIcon />
-
                                 ) : (
-
                                     <ExpandMoreIcon />
-
                                 )}
-
                             </ListItemButton>
-
 
                             <Collapse
                                 in={mastersOpen}
                                 timeout="auto"
                                 unmountOnExit
                             >
-
-                                <List
-                                    disablePadding
-                                >
+                                <List disablePadding>
 
                                     {/* DEVOTEES */}
 
@@ -988,26 +893,19 @@ export default function AppSidebar({
                                         onClick={onMobileClose}
                                         to="/masters/devotees"
                                         sx={{
-
                                             ...menuItemStyle,
                                             ml: 2,
                                             mr: 1
                                         }}
                                     >
-
                                         <ListItemIcon>
-
                                             <PeopleIcon />
-
                                         </ListItemIcon>
-
 
                                         <ListItemText
                                             primary="Devotees"
                                         />
-
                                     </ListItemButton>
-
 
                                     {/* CATEGORIES */}
 
@@ -1016,26 +914,19 @@ export default function AppSidebar({
                                         onClick={onMobileClose}
                                         to="/masters/categories"
                                         sx={{
-
                                             ...menuItemStyle,
                                             ml: 2,
                                             mr: 1
                                         }}
                                     >
-
                                         <ListItemIcon>
-
                                             <CategoryIcon />
-
                                         </ListItemIcon>
-
 
                                         <ListItemText
                                             primary="Categories"
                                         />
-
                                     </ListItemButton>
-
 
                                     {/* OFFERINGS */}
 
@@ -1044,26 +935,19 @@ export default function AppSidebar({
                                         onClick={onMobileClose}
                                         to="/masters/offerings"
                                         sx={{
-
                                             ...menuItemStyle,
                                             ml: 2,
                                             mr: 1
                                         }}
                                     >
-
                                         <ListItemIcon>
-
                                             <LocalOfferIcon />
-
                                         </ListItemIcon>
-
 
                                         <ListItemText
                                             primary="Offerings"
                                         />
-
                                     </ListItemButton>
-
 
                                     {/* PAYMENT MODES */}
 
@@ -1072,24 +956,18 @@ export default function AppSidebar({
                                         onClick={onMobileClose}
                                         to="/masters/payment-modes"
                                         sx={{
-
                                             ...menuItemStyle,
                                             ml: 2,
                                             mr: 1
                                         }}
                                     >
-
                                         <ListItemIcon>
-
                                             <PaymentsIcon />
-
                                         </ListItemIcon>
-
 
                                         <ListItemText
                                             primary="Payment Modes"
                                         />
-
                                     </ListItemButton>
 
                                     {/* DONATION CATEGORIES */}
@@ -1104,37 +982,25 @@ export default function AppSidebar({
                                             mr: 1
                                         }}
                                     >
-
                                         <ListItemIcon>
-
                                             <CategoryIcon />
-
                                         </ListItemIcon>
 
                                         <ListItemText
                                             primary="Donation Categories"
                                         />
-
                                     </ListItemButton>
-
-
                                 </List>
-
                             </Collapse>
-
                         </>
-
                     )}
-
 
                     {/* ==================================================
                         ADMINISTRATION - ADMIN ONLY
                     ================================================== */}
 
                     {isAdmin && (
-
                         <>
-
                             <ListItemButton
                                 onClick={() =>
                                     setAdministrationOpen(
@@ -1143,7 +1009,6 @@ export default function AppSidebar({
                                 }
                                 sx={sectionHeadingStyle}
                             >
-
                                 <ListItemIcon
                                     sx={{
                                         minWidth: 38,
@@ -1151,11 +1016,8 @@ export default function AppSidebar({
                                             colors.headingText
                                     }}
                                 >
-
                                     <AdminPanelSettingsIcon />
-
                                 </ListItemIcon>
-
 
                                 <ListItemText
                                     primary="Administration"
@@ -1164,29 +1026,19 @@ export default function AppSidebar({
                                     }}
                                 />
 
-
                                 {administrationOpen ? (
-
                                     <ExpandLessIcon />
-
                                 ) : (
-
                                     <ExpandMoreIcon />
-
                                 )}
-
                             </ListItemButton>
-
 
                             <Collapse
                                 in={administrationOpen}
                                 timeout="auto"
                                 unmountOnExit
                             >
-
-                                <List
-                                    disablePadding
-                                >
+                                <List disablePadding>
 
                                     {/* USERS */}
 
@@ -1195,28 +1047,63 @@ export default function AppSidebar({
                                         onClick={onMobileClose}
                                         to="/users"
                                         sx={{
-
                                             ...menuItemStyle,
                                             ml: 2,
                                             mr: 1
                                         }}
                                     >
-
                                         <ListItemIcon>
-
                                             <ManageAccountsIcon />
-
                                         </ListItemIcon>
-
 
                                         <ListItemText
                                             primary="Users"
                                         />
-
                                     </ListItemButton>
 
+                                    {/* ROLES */}
 
-                                    {/* SETTINGS */}
+                                    <ListItemButton
+                                        component={NavLink}
+                                        onClick={onMobileClose}
+                                        to="/administration/roles"
+                                        sx={{
+                                            ...menuItemStyle,
+                                            ml: 2,
+                                            mr: 1
+                                        }}
+                                    >
+                                        <ListItemIcon>
+                                            <AdminPanelSettingsIcon />
+                                        </ListItemIcon>
+
+                                        <ListItemText
+                                            primary="Roles"
+                                        />
+                                    </ListItemButton>
+
+                                    {/* PERMISSION CATALOGUE */}
+
+                                    <ListItemButton
+                                        component={NavLink}
+                                        onClick={onMobileClose}
+                                        to="/administration/permission-catalogue"
+                                        sx={{
+                                            ...menuItemStyle,
+                                            ml: 2,
+                                            mr: 1
+                                        }}
+                                    >
+                                        <ListItemIcon>
+                                            <AdminPanelSettingsIcon />
+                                        </ListItemIcon>
+
+                                        <ListItemText
+                                            primary="Permission Catalogue"
+                                        />
+                                    </ListItemButton>
+
+                                    {/* GALLERY MANAGEMENT */}
 
                                     <ListItemButton
                                         component={NavLink}
@@ -1228,60 +1115,42 @@ export default function AppSidebar({
                                             mr: 1
                                         }}
                                     >
-
                                         <ListItemIcon>
-
                                             <PhotoLibraryIcon />
-
                                         </ListItemIcon>
-
 
                                         <ListItemText
                                             primary="Gallery Management"
                                         />
-
                                     </ListItemButton>
+
+                                    {/* SETTINGS */}
 
                                     <ListItemButton
                                         component={NavLink}
                                         onClick={onMobileClose}
                                         to="/settings"
                                         sx={{
-
                                             ...menuItemStyle,
                                             ml: 2,
                                             mr: 1
                                         }}
                                     >
-
-
                                         <ListItemIcon>
-
                                             <SettingsIcon />
-
                                         </ListItemIcon>
-
 
                                         <ListItemText
                                             primary="Settings"
                                         />
-
                                     </ListItemButton>
 
                                 </List>
-
                             </Collapse>
-
                         </>
-
                     )}
-
                 </List>
-
             </Box>
-
         </Drawer>
-
     );
-
 }
